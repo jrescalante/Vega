@@ -4,8 +4,9 @@ This folder contains two Vega specifications designed to be used with **Deneb in
 
 - `spc-chart-en.json`: English version  
 - `spc-chart-es.json`: Spanish version  
+- `SPC-Control-Chart-v1.pbix`: Power BI file with both charts rendered in Deneb
 
-Both are functionally identical and differ only in labels, tooltips, and textual elements. Each JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical rigor, and practical business use.
+Each JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical rigor, and practical business use.
 
 This implementation builds an **SPC (Shewhart) Control Chart** with automated statistical calculations and rule detection.
 
@@ -99,6 +100,7 @@ The visual highlights:
 * Numeric formatting follows **US locale** (dot for decimals, comma for thousands)
 * Tested with Deneb inside Power BI Desktop
 * Intended for educational, analytical, and production scenarios
+* The `.pbix` file included in this folder contains both Vega specs rendered in Deneb for immediate use or reference
 
 ---
 
