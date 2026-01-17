@@ -99,7 +99,9 @@ The visual highlights:
 
 ## 📌 Notes
 
-* Numeric formatting follows **US locale** (dot for decimals, comma for thousands)
+* Each JSON specification includes its own **locale configuration**:
+  * `spc-control-chart-en.json` → uses **US locale** (dot for decimals, comma for thousands)
+  * `spc-control-chart-es.json` → uses **Spanish locale** (comma for decimals, dot for thousands, localized labels)
 * Tested with Deneb inside Power BI Desktop
 * Intended for educational, analytical, and production scenarios
 * The `.pbix` file included in this folder contains both Vega specs rendered in Deneb for immediate use or reference
