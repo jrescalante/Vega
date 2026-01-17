@@ -1,0 +1,114 @@
+# SPC Control Chart (Vega for Deneb)
+
+This repository contains **Vega specifications designed to be used with Deneb in Power BI**. Each JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical rigor, and practical business use.
+
+This file implements an **SPC (Shewhart) Control Chart** with automated statistical calculations and rule detection.
+
+---
+
+## 📊 What this visual does
+
+This Vega specification builds a full Statistical Process Control chart directly inside Deneb, including:
+
+* Automatic calculation of **Center Line (CL)** and **σ (population standard deviation)**
+* Control limits: **UCL / LCL (±3σ)**
+* Zone visualization:
+
+  * ±1σ (in control)
+  * ±2σ (warning)
+  * ±3σ (out of control)
+* **WECO rules (1–8)** detection using rolling windows
+* Optional **USL / LSL** support
+* **Cpk calculation** (only shown when both USL and LSL exist)
+* KPI cards and rule summary grid
+* Accessible color palette (Okabe–Ito)
+
+All calculations are performed inside Vega — no DAX measures required.
+
+---
+
+## 🧩 Data requirements
+
+Your dataset must contain at least the following fields:
+
+| Field         | Description                                  |
+| ------------- | -------------------------------------------- |
+| `Observation` | Sequential index (numeric or numeric string) |
+| `Measurement` | Measured value                               |
+
+Optional fields:
+
+| Field | Description               |
+| ----- | ------------------------- |
+| `usl` | Upper Specification Limit |
+| `lsl` | Lower Specification Limit |
+
+If `usl` and `lsl` are not provided, specification-related KPIs (USL, LSL, Cpk) are automatically hidden.
+
+---
+
+## 🧠 Statistical logic
+
+* **CL** = mean(Measurement)
+* **σ** = population standard deviation (stdevp)
+* **UCL / LCL** = CL ± 3σ
+* **Zones** are derived from σ offsets
+* **WECO rules** are evaluated per observation using rolling windows over z-scores, signs, and trends
+
+The visual highlights:
+
+* Out-of-control points
+* Warning states
+* Runs and trends
+
+---
+
+## 🖱 Interaction
+
+* Tooltips only (no brushing or cross-filtering)
+* Hover highlights points and rule-related conditions
+* Designed to be lightweight and stable inside Power BI
+
+---
+
+## 🚀 How to use in Deneb
+
+1. Add **Deneb** to your Power BI report
+2. Choose **Vega** as the specification type
+3. Paste the full JSON code from this file
+4. Bind your dataset with the required fields
+5. (Optional) Add `usl` / `lsl` columns to enable specification KPIs
+
+---
+
+## 🎯 Design goals
+
+* Keep all statistical logic **inside the visual layer**
+* Avoid unnecessary DAX complexity
+* Provide explainable, auditable SPC behavior
+* Make the spec reusable across datasets and reports
+
+---
+
+## 📌 Notes
+
+* Numeric formatting follows **US locale** (dot for decimals, comma for thousands)
+* Tested with Deneb inside Power BI Desktop
+* Intended for educational, analytical, and production scenarios
+
+---
+
+## 👤 Author
+
+**José Rafael Escalante**
+Power BI Consultant & Trainer
+Microsoft MVP – Data Platform
+
+* GitHub: [https://github.com/jrescalante](https://github.com/jrescalante)
+* LinkedIn: [https://www.linkedin.com/in/jrescalante/](https://www.linkedin.com/in/jrescalante/)
+
+---
+
+## 📄 License
+
+This project is shared for learning and reuse. Attribution is appreciated when adapting or extending the specification.
