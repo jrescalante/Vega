@@ -1,5 +1,7 @@
 # SPC Control Chart – Vega Spec for Deneb
 
+![SPC Control Chart Preview](https://sentidoanalitica.com/wp-content/uploads/2026/01/SPC-Control-Chart-v1.png)
+
 This folder contains two Vega specifications designed to be used with **Deneb in Power BI**:
 
 - `spc-chart-en.json`: English version  
