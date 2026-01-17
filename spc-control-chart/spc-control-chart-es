@@ -671,7 +671,7 @@
             "update": {
             "x": { "signal": "width + 2" },
             "y": { "scale": "y", "signal": "data('dataset')[0] ? data('dataset')[0].cl : 0", "offset": 10 },
-            "text": { "value": "median" },
+            "text": { "value": "mediana" },
             "align": { "value": "left" },
             "baseline": { "value": "top" },
             "fill": { "value": "#2d3436" },
