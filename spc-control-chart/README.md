@@ -50,6 +50,8 @@ Optional fields:
 | `usl` | Upper Specification Limit |
 | `lsl` | Lower Specification Limit |
 
+⚠️ **Important:** Column names must match exactly as defined above. They are **case sensitive**, so for example `Measurement` is valid but `measurement` will not be recognized.
+
 If `usl` and `lsl` are not provided, specification-related KPIs (USL, LSL, Cpk) are automatically hidden.
 
 ---
@@ -102,6 +104,7 @@ The visual highlights:
 * Each JSON specification includes its own **locale configuration**:
   * `spc-control-chart-en.json` → uses **US locale** (dot for decimals, comma for thousands)
   * `spc-control-chart-es.json` → uses **Spanish locale** (comma for decimals, dot for thousands, localized labels)
+* Column names in your dataset must match the expected names (`Observation`, `Measurement`, `usl`, `lsl`) and are **case sensitive**.
 * Tested with Deneb inside Power BI Desktop
 * Intended for educational, analytical, and production scenarios
 * The `.pbix` file included in this folder contains both Vega specs rendered in Deneb for immediate use or reference
