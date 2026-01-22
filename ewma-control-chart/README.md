@@ -1,124 +1,100 @@
+# EWMA Control Chart – Vega Spec for Deneb
 ![EWMA Control Chart](https://sentidoanalitica.com/wp-content/uploads/2026/01/EWMA-Control-Chart-v1.gif)
 
-# EWMA Control Chart Vega Spec for Deneb
+This folder contains a Vega specification designed to be used with **Deneb in Power BI**:
 
-Exponential Weighted Moving Average (EWMA) control chart implemented in Vega, ready to use in Deneb/Power BI.
+- `ewma-control-chart.json`: English version
+- `EWMA-Control-Chart-v1.pbix`: Power BI file with the chart rendered in Deneb
 
----
-
-## 📌 Overview
-
-The EWMA chart is designed to detect small shifts in process mean with higher sensitivity compared to traditional Shewhart charts.  
-
-This visual includes:
-
-- Configurable parameters: `lambda` and `L`.
-- Upper and lower control limits (UCL/LCL).
-- Shaded band between UCL and LCL.
-- Blue line for EWMA values.
-- Gray dashed line for the center line (CL).
-- Points color-coded by state (*in control* / *out of control*).
-- Optional raw measurement crosses for context.
-- Tooltips with concise, formatted information.
-- Custom legend for points and lines.
+Each JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical logic, and practical business use.
 
 ---
 
-## 🛠️ Required Dataset
+## 📊 What this visual does
 
-The dataset must contain at least:
+This Vega specification builds an **Exponentially Weighted Moving Average (EWMA) control chart** directly inside Deneb, including:
 
-| Field       | Description                          |
-|-------------|--------------------------------------|
-| Observation | Sequential observation number (int). |
-| Measurement | Measured value (numeric).            |
+* Exponentially weighted moving average (EWMA) calculation per observation
+* Target Mean and Target Sigma input signals
+* Configurable **λ (lambda)** and **L Multiplier**
+* Dynamic control limits updating with λ
+* Clear **in-control / out-of-control states**
+* Primary limits visualized as shaded boundaries
+* Data point coloring based on control evaluation
 
-Optional fields for parameterization:
-- `Lambda`
-- `LMultiplier`
-- `TargetMean`
-- `TargetSigma`
-
----
-
-## 🔄 Transformation Flow
-
-1. **Data preparation**
-   - Convert `Observation` and `Measurement` to numeric.
-   - Filter invalid values.
-   - Sort ascending by observation.
-
-2. **EWMA calculations**
-   - Compute EWMA values.
-   - Calculate sigma for EWMA.
-   - Derive UCL and LCL.
-   - Determine state (*in/out*) based on limits.
-   - Add padding for y-domain scaling.
-
-3. **Auxiliary datasets**
-   - `last_point`: filters last observation for numeric labels.
-   - `legend_items`: static legend entries.
+The visual is designed to detect **small shifts in process mean** more effectively than traditional charts. :contentReference[oaicite:1]{index=1}
 
 ---
 
-## 🎨 Visual Elements
+## 🧩 Data requirements
 
-- **Green shaded band** between UCL and LCL.
-- **Red dashed lines** for UCL and LCL.
-- **Gray dashed line** for CL.
-- **Blue line** for EWMA.
-- **Symbols**:
-  - Circle for *in control*.
-  - Diamond for *out of control*.
-- **Numeric labels** for last UCL, CL, and LCL.
-- **Custom legend** aligned to the right.
+Your dataset must contain at least the following fields:
 
----
+| Field       | Description                        |
+|-------------|------------------------------------|
+| `Observation` | Sequential index (numeric)       |
+| `Value`       | Measured data point             |
 
-## 🧾 Tooltips
-
-Each EWMA point displays:
-
-- Observation  
-- Measurement  
-- EWMA  
-- CL  
-- UCL  
-- LCL  
-- Lambda  
-- L Multiplier  
-
-All values formatted with two decimals.
+⚠️ **Important:** Column names are **case sensitive**.
 
 ---
 
-## 📐 Layout and Signals
+## 🧠 Statistical logic
 
-- `container`, `viewW`, `viewH`: responsive sizing.
-- `padding`: controls legend placement.
-- `autosize`: type `fit` for adaptive layout.
-
----
-
-## 🚀 Usage in Deneb
-
-1. Copy the Vega spec JSON into Deneb.
-2. Bind dataset fields:
-   - **Observation → Observation**
-   - **Measurement → Measurement**
-3. Optionally bind parameters (`Lambda`, `LMultiplier`, `TargetMean`, `TargetSigma`).
-4. The chart adapts automatically to the container.  
-   Interaction is limited to tooltips.
+* **EWMA** = exponential smoothing over observations
+* **Control limits** adapt based on λ and L multiplier
+* Out-of-control detection is driven by EWMA crossing dynamic boundaries
+* Limits and signals update interactively via Vega signals
 
 ---
 
-## 📊 Example Dataset
+## 🖱 Interaction
 
-```csv
-Observation,Measurement
-1,9.45
-2,7.99
-3,9.29
-4,11.66
-...
-30,10.52
+* Tooltips show observation details and EWMA state
+* Hover highlights point and limits
+* Signals are exposed at the top of the visual for interactive tuning
+
+---
+
+## 🚀 How to use in Deneb
+
+1. Add **Deneb** to your Power BI report  
+2. Choose **Vega** as the specification type  
+3. Paste the full JSON code from this file  
+4. Bind your dataset with the required fields  
+5. Adjust **Target Mean**, **Target Sigma**, **λ**, and **L** as needed
+
+---
+
+## 🎯 Design goals
+
+* Keep all statistical logic **inside the visual layer**
+* Avoid unnecessary DAX complexity
+* Provide explainable, auditable EWMA behavior
+* Make the spec reusable across datasets and reports
+
+---
+
+## 📌 Notes
+
+* You can customize the visual by adjusting the **λ (lambda)** and **L Multiplier** signals
+* The primary limits reflect the exponential nature of the chart, not static 3σ boundaries
+
+---
+
+## 👤 Author
+
+**José Rafael Escalante**  
+Power BI Consultant & Trainer  
+Microsoft MVP – Data Platform  
+
+* GitHub: [https://github.com/jrescalante](https://github.com/jrescalante)  
+* LinkedIn: [https://www.linkedin.com/in/jrescalante/](https://www.linkedin.com/in/jrescalante/)
+
+---
+
+## License
+
+This project is shared under the **MIT License**.
+
+Attribution is appreciated when adapting or extending the specification.
