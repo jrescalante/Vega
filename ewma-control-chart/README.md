@@ -1,5 +1,5 @@
 # EWMA Control Chart – Vega Spec for Deneb
-![EWMA Control Chart](https://sentidoanalitica.com/wp-content/uploads/2026/01/EWMA-Control-Chart-v1.gif)
+![EWMA Control Chart](https://sentidoanalitica.com/wp-content/uploads/2026/01/EWMA-Control-Chart-Params-v1.gif)
 
 This folder contains a Vega specification designed to be used with **Deneb in Power BI**:
 
