@@ -1,4 +1,6 @@
-# EWMA Control Chart (Deneb/Vega)
+![EWMA Control Chart](https://sentidoanalitica.com/wp-content/uploads/2026/01/EWMA-Control-Chart-v1.gif)
+
+# EWMA Control Chart Vega Spec for Deneb
 
 Exponential Weighted Moving Average (EWMA) control chart implemented in Vega, ready to use in Deneb/Power BI.
 
