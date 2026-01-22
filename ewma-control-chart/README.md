@@ -104,8 +104,6 @@ Microsoft MVP – Data Platform
 
 ---
 
-## License
+## 📄 License
 
-This project is shared under the **MIT License**.
-
-Attribution is appreciated when adapting or extending the specification.
+This project is shared under the [MIT License](../LICENSE). Attribution is appreciated when adapting or extending the specification.
