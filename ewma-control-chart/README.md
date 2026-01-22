@@ -22,20 +22,31 @@ This Vega specification builds an **Exponentially Weighted Moving Average (EWMA)
 * Primary limits visualized as shaded boundaries
 * Data point coloring based on control evaluation
 
-The visual is designed to detect **small shifts in process mean** more effectively than traditional charts. :contentReference[oaicite:1]{index=1}
+The visual is designed to detect **small shifts in process mean** more effectively than traditional charts. 
 
 ---
 
-## 🧩 Data requirements
+## Data requirements
 
-Your dataset must contain at least the following fields:
+Your dataset must contain the following fields:
 
-| Field       | Description                        |
-|-------------|------------------------------------|
-| `Observation` | Sequential index (numeric)       |
-| `Value`       | Measured data point             |
+| Field          | Description                              |
+|----------------|------------------------------------------|
+| `Observation`  | Sequential index (numeric)               |
+| `Measurement`  | Raw measured value                       |
 
-⚠️ **Important:** Column names are **case sensitive**.
+In addition, the following **measures must be added to the visual**, typically sourced from **Power BI parameters**:
+
+| Measure        | Description                              |
+|----------------|------------------------------------------|
+| `TargetMean`   | Reference process mean (CL)              |
+| `TargetSigma`  | Reference process standard deviation     |
+| `Lambda`       | EWMA smoothing parameter (λ)             |
+| `LMultiplier` | Control limit multiplier (L)             |
+
+⚠️ **Important:**  
+- Field and measure names are **case sensitive**  
+- These measures are evaluated at visual level and drive the statistical behavior of the chart
 
 ---
 
