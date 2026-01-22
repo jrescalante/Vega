@@ -1,0 +1,389 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "usermeta": {
+    "version": "1.0",
+    "developedBy": "José Rafael Escalante",
+    "gitHub": "https://github.com/jrescalante",
+    "linkedIn": "https://www.linkedin.com/in/jrescalante/",
+    "email": "jrescalante@sentidoanalitica.com",
+    "visualName": "EWMA Control Chart",
+    "visualDescription": "EWMA control chart with configurable lambda/L, UCL/LCL band, optional raw crosses, and concise tooltips; Deneb-ready.",
+    "doc": {
+      "data_stage": [
+        "Dataset with Observation (obs) and Measurement (raw).",
+        "Filters invalid values, sorts by observation, and sets defaults when lambda/L/CL/sigma are missing."
+      ],
+      "layout_signals": [
+        "Signals container/viewW/viewH define responsive sizing; padding drives legend placement."
+      ],
+      "transform_stage": [
+        "Computes EWMA, sigma for EWMA, and limits (UCL/LCL) from lambda and L values.",
+        "Derives state in/out based on EWMA vs limits; pads limits (ucl_pad/lcl_pad) for y-domain."
+      ],
+      "visual_stage": [
+        "Green band between UCL and LCL, dashed red limits, gray dashed CL, blue EWMA line.",
+        "Points color-coded by state; optional raw crosses as context; text labels on last UCL/CL/LCL."
+      ],
+      "tooltip_stage": [
+        "Tooltips on EWMA points include Observation, Measurement, EWMA, CL, UCL, LCL, lambda, L (formatted)."
+      ],
+      "deneb_usage": [
+        "Paste the spec in Deneb and bind the dataset fields: Observation -> Observation, Measurement -> Measurement.",
+        "No interactions beyond tooltips; sizing adapts to the visual container."
+      ],
+      "doc_data": {
+        "dataset": "Validates and computes EWMA, limits, state, and padded limits for plotting.",
+        "last_point": "Filters the last observation for limit labels.",
+        "legend_items": "Static legend entries for points and lines."
+      }
+    }
+  },
+  "padding": {"top": 12, "right": 16, "bottom": 20, "left": 16},
+  "width": {"signal": "viewW"},
+  "height": {"signal": "viewH"},
+  "background": "white",
+  "bounds": "flush",
+  "autosize": {"type": "fit", "contains": "padding", "resize": true},
+  "data": [
+    {
+      "name": "dataset",
+      "values": [
+        {"Observation":1, "Measurement":9.45},
+        {"Observation":2, "Measurement":7.99},
+        {"Observation":3, "Measurement":9.29},
+        {"Observation":4, "Measurement":11.66},
+        {"Observation":5, "Measurement":12.16},
+        {"Observation":6, "Measurement":10.18},
+        {"Observation":7, "Measurement":8.04},
+        {"Observation":8, "Measurement":11.46},
+        {"Observation":9, "Measurement":9.2},
+        {"Observation":10, "Measurement":10.34},
+        {"Observation":11, "Measurement":9.03},
+        {"Observation":12, "Measurement":11.47},
+        {"Observation":13, "Measurement":10.51},
+        {"Observation":14, "Measurement":9.4},
+        {"Observation":15, "Measurement":10.08},
+        {"Observation":16, "Measurement":9.37},
+        {"Observation":17, "Measurement":10.62},
+        {"Observation":18, "Measurement":10.31},
+        {"Observation":19, "Measurement":8.52},
+        {"Observation":20, "Measurement":10.84},
+        {"Observation":21, "Measurement":10.9},
+        {"Observation":22, "Measurement":9.33},
+        {"Observation":23, "Measurement":12.29},
+        {"Observation":24, "Measurement":11.5},
+        {"Observation":25, "Measurement":10.6},
+        {"Observation":26, "Measurement":11.08},
+        {"Observation":27, "Measurement":10.38},
+        {"Observation":28, "Measurement":11.62},
+        {"Observation":29, "Measurement":11.31},
+        {"Observation":30, "Measurement":10.52}
+      ],
+      "transform": [
+        {"type": "formula", "as": "obs", "expr": "toNumber(datum.Observation)"},
+        {"type": "formula", "as": "raw", "expr": "toNumber(datum.Measurement)"},
+        {"type": "filter", "expr": "isValid(datum.obs) && isValid(datum.raw)"},
+        {"type": "collect", "sort": {"field": "obs", "order": "ascending"}},
+        {"type": "window", "ops": ["row_number"], "as": ["idx"]},
+        {"type": "joinaggregate", "fields": ["raw", "raw", "Lambda", "LMultiplier", "TargetMean", "TargetSigma", "idx"], "ops": ["mean", "stdevp", "max", "max", "max", "max", "max"], "as": ["raw_mean", "raw_sigma", "lambda_raw", "L_raw", "targetMu_raw", "sigmaRef_raw", "max_idx"]},
+        {"type": "formula", "as": "lambda_val", "expr": "isValid(datum.lambda_raw) ? datum.lambda_raw : 0.1"},
+        {"type": "formula", "as": "L_val", "expr": "isValid(datum.L_raw) ? datum.L_raw : 2.7"},
+        {"type": "formula", "as": "cl", "expr": "isValid(datum.targetMu_raw) ? datum.targetMu_raw : 10"},
+        {"type": "formula", "as": "sigma", "expr": "isValid(datum.sigmaRef_raw) ? datum.sigmaRef_raw : 1"},
+        {"type": "formula", "as": "a", "expr": "1 - datum.lambda_val"},
+        {"type": "formula", "as": "inv_w", "expr": "pow(datum.a, -datum.idx)"},
+        {"type": "formula", "as": "weighted", "expr": "datum.raw * datum.inv_w"},
+        {"type": "window", "ops": ["sum"], "fields": ["weighted"], "frame": [null, 0], "as": ["w_sum"]},
+        {"type": "formula", "as": "a_pow", "expr": "pow(datum.a, datum.idx)"},
+        {"type": "formula", "as": "ewma", "expr": "datum.a_pow * (datum.lambda_val * datum.w_sum + datum.cl)"},
+        {"type": "formula", "as": "med_val", "expr": "datum.ewma"},
+        {"type": "formula", "as": "ewma_sigma", "expr": "datum.sigma * sqrt(datum.lambda_val / (2 - datum.lambda_val) * (1 - pow(1 - datum.lambda_val, 2 * datum.idx)))"},
+        {"type": "formula", "as": "ucl", "expr": "datum.cl + datum.L_val * datum.ewma_sigma"},
+        {"type": "formula", "as": "lcl", "expr": "datum.cl - datum.L_val * datum.ewma_sigma"},
+        {"type": "formula", "as": "state", "expr": "datum.med_val > datum.ucl || datum.med_val < datum.lcl ? 'out' : 'in'"},
+        {"type": "formula", "as": "pad", "expr": "(datum.ucl - datum.lcl) * 0.05"},
+        {"type": "formula", "as": "ucl_pad", "expr": "datum.ucl + datum.pad"},
+        {"type": "formula", "as": "lcl_pad", "expr": "datum.lcl - datum.pad"},
+        {"type": "window", "ops": ["mean"], "fields": ["med_val"], "frame": [-6, 0], "as": ["ewma_avg7"]}
+      ]
+    },
+    {
+      "name": "last_point",
+      "source": "dataset",
+      "transform": [
+        {"type": "filter", "expr": "datum.idx == datum.max_idx"}
+      ]
+    },
+    {
+      "name": "legend_items",
+      "values": [
+        {"label": "In Control", "kind": "point", "color": "#2ca02c", "dy": 10},
+        {"label": "Out of Control", "kind": "point", "color": "#d62728", "dy": 30},
+        {"label": "Mean Line", "kind": "line", "color": "#7f7f7f", "dash": [6,3], "dy": 50},
+        {"label": "Primary Limits", "kind": "line", "color": "#d62728", "dash": [4,2], "dy": 70}
+      ]
+    }
+  ],
+  "signals": [
+    {"name": "container", "update": "containerSize()"},
+    {"name": "viewW", "update": "container[0]"},
+    {"name": "viewH", "update": "container[1]"}
+  ],
+  "scales": [
+    {"name": "x", "type": "band", "domain": {"data": "dataset", "field": "obs"}, "range": "width", "padding": 0.2},
+    {"name": "y", "type": "linear", "range": "height", "nice": true, "zero": false,
+      "domain": {"fields": [
+        {"data": "dataset", "field": "med_val"},
+        {"data": "dataset", "field": "ucl_pad"},
+        {"data": "dataset", "field": "lcl_pad"}
+      ]}
+    },
+    {"name": "color", "type": "ordinal", "domain": ["in", "out"], "range": ["#2ca02c", "#d62728"]},
+    {"name": "lineLegend", "type": "ordinal", "domain": ["Mean Line", "Primary Limits"], "range": ["#7f7f7f", "#d62728"]}
+  ],
+  "axes": [
+    {"orient": "bottom", "scale": "x", "title": "Observation", "labelAngle": 0, "grid": false,
+      "labelFont": "Bahnschrift", "labelFontSize": 11, "labelPadding": 8, "labelColor": "#6f6f6f",
+      "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#6f6f6f"},
+    {"orient": "left", "scale": "y", "title": "EWMA", "grid": true, "format": ",.2f",
+      "labelFont": "Bahnschrift", "labelFontSize": 11, "labelColor": "#6f6f6f",
+      "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#6f6f6f"}
+  ],
+  "legends": [],
+  "marks": [
+    {
+      "description": "Custom legend group for points and limit lines",
+      "type": "group",
+      "encode": {
+        "update": {
+          "x": {"signal": "width + 48"},
+          "y": {"signal": "height/2 - 40"}
+        }
+      },
+      "marks": [
+        {
+          "type": "text",
+          "encode": {
+            "update": {
+              "x": {"value": 0},
+              "y": {"value": -8},
+              "text": {"value": "Legend"},
+              "font": {"value": "Bahnschrift"},
+              "fontSize": {"value": 12},
+              "fontWeight": {"value": "bold"},
+              "fill": {"value": "#333"}
+            }
+          }
+        },
+        {
+          "type": "symbol",
+          "from": {"data": "legend_items"},
+          "encode": {
+            "enter": {
+              "size": {"value": 72},
+              "strokeWidth": {"value": 1.2}
+            },
+            "update": {
+              "x": {"value": 0},
+              "y": {"field": "dy"},
+              "opacity": [{"test": "datum.kind === 'point'", "value": 1}, {"value": 0}],
+              "fill": {"field": "color"},
+              "stroke": {"value": "white"}
+            }
+          }
+        },
+        {
+          "type": "rule",
+          "from": {"data": "legend_items"},
+          "encode": {
+            "update": {
+              "x": {"value": -8},
+              "x2": {"value": 16},
+              "y": {"field": "dy"},
+              "opacity": [{"test": "datum.kind === 'line'", "value": 1}, {"value": 0}],
+              "stroke": {"field": "color"},
+              "strokeWidth": {"value": 1.5},
+              "strokeDash": {"field": "dash"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "legend_items"},
+          "encode": {
+            "update": {
+              "x": {"value": 24},
+              "y": {"field": "dy", "offset": 3},
+              "text": {"field": "label"},
+              "font": {"value": "Bahnschrift"},
+              "fontSize": {"value": 11},
+              "fill": {"value": "#333"}
+            }
+          }
+        }
+      ]
+    },
+    
+    {
+      "description": "Shaded band between UCL and LCL",
+      "type": "area",
+      "from": {"data": "dataset"},
+      "encode": {
+        "update": {
+          "x": {"scale": "x", "field": "obs", "band": 0.5},
+          "y": {"scale": "y", "field": "ucl"},
+          "y2": {"scale": "y", "field": "lcl"},
+          "fill": {"value": "#eaf5e3"},
+          "stroke": {"value": "#7fbf7b"},
+          "strokeWidth": {"value": 1},
+          "opacity": {"value": 0.2}
+        }
+      }
+    },
+    {
+      "description": "Upper control limit (UCL) red dashed line",
+      "type": "line",
+      "from": {"data": "dataset"},
+      "encode": {
+        "update": {
+          "x": {"scale": "x", "field": "obs", "band": 0.5},
+          "y": {"scale": "y", "field": "ucl"},
+          "stroke": {"value": "#d62728"},
+          "strokeDash": {"value": [4, 2]},
+          "strokeWidth": {"value": 1.7}
+        }
+      }
+    },
+    {
+      "description": "Center line (CL) gray dashed",
+      "type": "rule",
+      "encode": {
+        "update": {
+          "x": {"value": 0},
+          "x2": {"signal": "width"},
+          "y": {"scale": "y", "signal": "data('dataset')[0].cl"},
+          "stroke": {"value": "#7f7f7f"},
+          "strokeDash": {"value": [6, 3]},
+          "strokeWidth": {"value": 1.5}
+        }
+      }
+    },
+    {
+      "description": "Lower control limit (LCL) red dashed",
+      "type": "line",
+      "from": {"data": "dataset"},
+      "encode": {
+        "update": {
+          "x": {"scale": "x", "field": "obs", "band": 0.5},
+          "y": {"scale": "y", "field": "lcl"},
+          "stroke": {"value": "#d62728"},
+          "strokeDash": {"value": [4, 2]},
+          "strokeWidth": {"value": 1.7}
+        }
+      }
+    },
+    {
+      "description": "EWMA blue line (exponential moving average)",
+      "type": "line",
+      "from": {"data": "dataset"},
+      "encode": {
+        "update": {
+          "x": {"scale": "x", "field": "obs", "band": 0.5},
+          "y": {"scale": "y", "field": "med_val"},
+          "stroke": {"value": "#3b82f6"},
+          "strokeWidth": {"value": 1.5},
+          "strokeOpacity": {"value": 0.8}
+        }
+      }
+    },
+    {
+      "description": "EWMA points colored by in/out-of-control state",
+      "type": "symbol",
+      "from": {"data": "dataset"},
+      "encode": {
+        "enter": {
+          "size": {"value": 60},
+          "strokeWidth": {"value": 1.4}
+        },
+        "update": {
+          "x": {"scale": "x", "field": "obs", "band": 0.5},
+          "y": {"scale": "y", "field": "med_val"},
+          "shape": [{"test": "datum.state === 'out'", "value": "diamond"}, {"value": "circle"}],
+          "size": [{"test": "datum.state === 'out'", "value": 85}, {"value": 60}],
+          "fill": {"scale": "color", "field": "state"},
+          "stroke": {"value": "white"},
+          "tooltip": {
+            "signal": "{Observation: datum.obs, Measurement: format(datum.raw, ',.2f'), EWMA: format(datum.med_val, ',.2f'), CL: format(datum.cl, ',.2f'), UCL: format(datum.ucl, ',.2f'), LCL: format(datum.lcl, ',.2f'), Lambda: format(datum.lambda_val, ',.2f'), 'L Multiplier': format(datum.L_val, ',.2f')}"
+          }
+        },
+        "hover": {
+          "size": {"value": 130},
+          "stroke": {"value": "#000"}
+        }
+      }
+    }
+    ,
+    {
+      "description": "Numeric label for last UCL",
+      "type": "text",
+      "from": {"data": "last_point"},
+      "encode": {
+        "update": {
+              "x": {"scale": "x", "field": "obs", "offset": 20},
+          "y": {"scale": "y", "field": "ucl", "offset": -4},
+          "text": {"signal": "format(datum.ucl, ',.2f')"},
+          "fill": {"value": "#d62728"},
+          "fontSize": {"value": 11},
+          "font": {"value": "Bahnschrift"},
+              "background": {"value": "white"},
+              "cornerRadius": {"value": 2},
+          "opacity": {"value": 0.9}
+        }
+      }
+    },
+    {
+      "description": "Numeric label for center line (CL)",
+      "type": "text",
+      "from": {"data": "last_point"},
+      "encode": {
+        "update": {
+              "x": {"scale": "x", "field": "obs", "offset": 20},
+          "y": {"scale": "y", "field": "cl", "offset": -4},
+          "text": {"signal": "format(datum.cl, ',.2f')"},
+          "fill": {"value": "#7f7f7f"},
+          "fontSize": {"value": 11},
+          "font": {"value": "Bahnschrift"},
+              "background": {"value": "white"},
+              "cornerRadius": {"value": 2},
+          "opacity": {"value": 0.9}
+        }
+      }
+    },
+    {
+      "description": "Numeric label for last LCL",
+      "type": "text",
+      "from": {"data": "last_point"},
+      "encode": {
+        "update": {
+              "x": {"scale": "x", "field": "obs", "offset": 20},
+          "y": {"scale": "y", "field": "lcl", "offset": -4},
+          "text": {"signal": "format(datum.lcl, ',.2f')"},
+          "fill": {"value": "#d62728"},
+          "fontSize": {"value": 11},
+          "font": {"value": "Bahnschrift"},
+              "background": {"value": "white"},
+              "cornerRadius": {"value": 2},
+          "opacity": {"value": 0.9}
+        }
+      }
+    }
+  ]
+  ,
+  "config": {
+    "view": {"stroke": "transparent"},
+    "axis": {"labelFont": "Bahnschrift", "labelFontSize": 11, "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12,
+      "labelColor": "#6f6f6f", "gridColor": "#f2f2f2", "gridOpacity": 0.4},
+    "legend": {"labelFont": "Bahnschrift", "titleFont": "Bahnschrift SemiBold"},
+    "text": {"font": "Bahnschrift", "fontSize": 12}
+  }
+}
