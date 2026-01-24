@@ -108,20 +108,3 @@ The visual highlights:
 * Tested with Deneb inside Power BI Desktop
 * Intended for educational, analytical, and production scenarios
 * The `.pbix` file included in this folder contains both Vega specs rendered in Deneb for immediate use or reference
-
----
-
-## 👤 Author
-
-**José Rafael Escalante**  
-Power BI Consultant & Trainer  
-Microsoft MVP – Data Platform  
-
-* GitHub: [https://github.com/jrescalante](https://github.com/jrescalante)  
-* LinkedIn: [https://www.linkedin.com/in/jrescalante/](https://www.linkedin.com/in/jrescalante/)
-
----
-
-## 📄 License
-
-This project is shared under the [MIT License](../LICENSE). Attribution is appreciated when adapting or extending the specification.
