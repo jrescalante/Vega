@@ -101,9 +101,3 @@ Microsoft MVP – Data Platform
 
 * GitHub: [https://github.com/jrescalante](https://github.com/jrescalante)  
 * LinkedIn: [https://www.linkedin.com/in/jrescalante/](https://www.linkedin.com/in/jrescalante/)
-
----
-
-## 📄 License
-
-This project is shared under the [MIT License](../LICENSE). Attribution is appreciated when adapting or extending the specification.
