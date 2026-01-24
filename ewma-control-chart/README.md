@@ -90,14 +90,3 @@ In addition, the following **measures must be added to the visual**, typically s
 
 * You can customize the visual by adjusting the **λ (lambda)** and **L Multiplier** signals
 * The primary limits reflect the exponential nature of the chart, not static 3σ boundaries
-
----
-
-## 👤 Author
-
-**José Rafael Escalante**  
-Power BI Consultant & Trainer  
-Microsoft MVP – Data Platform  
-
-* GitHub: [https://github.com/jrescalante](https://github.com/jrescalante)  
-* LinkedIn: [https://www.linkedin.com/in/jrescalante/](https://www.linkedin.com/in/jrescalante/)
