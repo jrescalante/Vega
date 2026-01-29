@@ -1,4 +1,4 @@
-# SPC Control Chart – Vega Spec for Deneb
+# SPC Control Chart + WECO Rules – Vega Spec for Deneb
 
 ![SPC Control Chart Preview](https://sentidoanalitica.com/wp-content/uploads/2026/01/SPC-Control-Chart-v1.gif)
 
