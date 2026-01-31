@@ -14,9 +14,6 @@ This JSON file is a complete, self-contained Vega spec focused on analytical cor
 
 ## 🚀 What this visual does
 
-A **Process Capability Histogram** built with **Vega** and rendered in **Deneb for Power BI**.  
-This visual combines distribution analysis with statistical capability metrics to evaluate how well a process meets its specification limits.
-
 This chart allows you to:
 
 * Visualize the **distribution of a process** using a histogram
@@ -26,7 +23,7 @@ This chart allows you to:
 * Evaluate **process capability (Cp, Cpk)**
 * Highlight **out-of-spec regions** visually
 
-It is designed to be **self-contained**, responsive, and easy to reuse across datasets.
+This visual combines **distribution analysis with statistical capability metrics** to evaluate how well a process meets its specification limits.
 
 ---
 
