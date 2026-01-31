@@ -6,7 +6,7 @@ This folder contains a Vega specification designed to be used with **Deneb in Po
 - `ewma-control-chart.json`: English version
 - `EWMA-Control-Chart-v1.pbix`: Power BI file with the chart rendered in Deneb
 
-Each JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical logic, and practical business use.
+This JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical logic, and practical business use.
 
 ---
 
