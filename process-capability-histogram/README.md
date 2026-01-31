@@ -1,11 +1,21 @@
 # 📊 Process Capability Histogram (Vega / Deneb)
 
-A **Process Capability Histogram** built with **Vega** and rendered in **Deneb for Power BI**.
-This visual combines distribution analysis with statistical capability metrics to evaluate how well a process meets its specification limits.
+![Process Capability Histogram](https://sentidoanalitica.com/wp-content/uploads/2026/01/process-capability-histogram.gif)
+
+This folder contains a Vega specification designed to be used with Deneb in Power BI:
+
+`process-capability-histogram.json`: Vega specification (English version)
+
+`Process-Capability-Histogram-v1.pbix`: Power BI file with the chart rendered in Deneb
+
+This JSON file is a complete, self-contained Vega spec focused on analytical correctness, statistical logic, and practical business use.
 
 ---
 
 ## 🚀 What this visual does
+
+A **Process Capability Histogram** built with **Vega** and rendered in **Deneb for Power BI**.  
+This visual combines distribution analysis with statistical capability metrics to evaluate how well a process meets its specification limits.
 
 This chart allows you to:
 
