@@ -1,0 +1,425 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "usermeta": {
+    "version": "1.0",
+    "developedBy": "José Rafael Escalante",
+    "gitHub": "https://github.com/jrescalante",
+    "linkedIn": "https://www.linkedin.com/in/jrescalante/",
+    "email": "jrescalante@sentidoanalitica.com",
+    "visualName": "Process Capability Histogram",
+    "visualDescription": "Process capability histogram with specs (LSL/USL), Cp/Cpk, inside/outside %, normal fit and optional KDE; Deneb-ready.",
+    "doc": {
+      "data_stage": [
+        "Dataset expects Measurement as numeric input; optional LSL/USL fields are read per row.",
+        "Validates numeric measurements, computes extent, derives mu/sigma/count, and captures provided specs if present."
+      ],
+      "layout_signals": [
+        "Signals container/viewW/viewH set responsive sizing; maxBins drives binning; font signals size headers/labels."
+      ],
+      "transform_stage": [
+        "Bins measurements, aggregates counts and midpoints; computes normal PDF scaled to counts.",
+        "Calculates cp/cpk/capability class and inside/outside percentages relative to LSL/USL." 
+      ],
+      "visual_stage": [
+        "Histogram bars with optional tail shading, normal curve, spec lines (LSL/USL/target/mean), and capability header.",
+        "Inside/Outside indicators show percentages; positions respond to width via signals."
+      ],
+      "tooltip_stage": [
+        "Bin tooltips show start/end, count, percent of total, and density when available."
+      ],
+      "deneb_usage": [
+        "Paste the spec into Deneb; bind Measurement -> Measurement. LSL and USL fields are optional but enable capability metrics.",
+        "No interactions beyond tooltips; sizing adapts to the visual container."
+      ],
+      "doc_data": {
+        "dataset": "Filters/validates measurements, extracts optional LSL/USL, and computes summary stats (mu, sigma, n).",
+        "specs": "Aggregated specs and stats, including presence flags for LSL/USL.",
+        "hist": "Binned histogram with counts, bin width, and midpoints for plotting.",
+        "pdf": "Normal fit scaled to histogram counts for comparison against empirical data.",
+        "inside": "Count of observations within LSL/USL used for inside/outside percentages."
+      }
+    }
+  },
+  "description": "Process Capability Histogram base. Uses Observation and Measurement columns.",
+  "autosize": { "type": "fit", "contains": "padding", "resize": true },
+  "padding": { "top": 30, "right": 20, "bottom": 30, "left": 50 },
+  "width": { "signal": "viewW" },
+  "height": { "signal": "viewH" },
+  "background": "white",
+
+  "data": [
+    {
+      "name": "dataset",
+      "values": [],
+      "transform": [
+        { "type": "filter", "expr": "isValid(datum.Measurement)" },
+        { "type": "formula", "as": "x", "expr": "toNumber(datum.Measurement)" },
+        { "type": "filter", "expr": "isValid(datum.x)" },
+        { "type": "extent", "field": "x", "signal": "xExtent" },
+        { "type": "formula", "as": "uslVal", "expr": "isValid(datum.USL) ? toNumber(datum.USL) : null" },
+        { "type": "formula", "as": "lslVal", "expr": "isValid(datum.LSL) ? toNumber(datum.LSL) : null" },
+        { "type": "joinaggregate", "fields": ["x", "x", "x", "uslVal", "lslVal"], "ops": ["mean", "stdevp", "count", "max", "min"], "as": ["mu", "sigma", "n", "uslAgg", "lslAgg"] }
+      ]
+    },
+
+    {
+      "name": "specs",
+      "source": "dataset",
+      "transform": [
+        { "type": "aggregate", "fields": ["mu", "sigma", "n", "uslAgg", "lslAgg"], "ops": ["max", "max", "max", "max", "min"], "as": ["mu", "sigma", "n", "usl", "lsl"] },
+        { "type": "formula", "as": "hasUSL", "expr": "isValid(datum.usl) && datum.usl != null" },
+        { "type": "formula", "as": "hasLSL", "expr": "isValid(datum.lsl) && datum.lsl != null" }
+      ]
+    },
+
+    {
+      "name": "hist",
+      "source": "dataset",
+      "transform": [
+        { "type": "bin", "field": "x", "as": ["bin0", "bin1"], "maxbins": { "signal": "maxBins" }, "extent": { "signal": "xExtent" } },
+        { "type": "aggregate", "groupby": ["bin0", "bin1"], "ops": ["count"], "as": ["count"] },
+        { "type": "formula", "as": "mid", "expr": "(datum.bin0 + datum.bin1) / 2" },
+        { "type": "formula", "as": "binw", "expr": "datum.bin1 - datum.bin0" }
+      ]
+    },
+
+    {
+      "name": "hist_max",
+      "source": "hist",
+      "transform": [ { "type": "aggregate", "fields": ["count"], "ops": ["max"], "as": ["maxCount"] } ]
+    },
+
+    {
+      "name": "pdf",
+      "source": "hist",
+      "transform": [
+        { "type": "formula", "as": "mu", "expr": "data('dataset').length ? data('dataset')[0].mu : 0" },
+        { "type": "formula", "as": "sigma", "expr": "data('dataset').length ? data('dataset')[0].sigma : 1" },
+        { "type": "formula", "as": "n", "expr": "data('dataset').length ? data('dataset')[0].n : 0" },
+        { "type": "formula", "as": "binw", "expr": "datum.bin1 - datum.bin0" },
+        { "type": "formula", "as": "density", "expr": "datum.sigma > 0 ? (1/(datum.sigma*sqrt(2*PI))) * exp(-0.5 * pow((datum.mid - datum.mu)/datum.sigma, 2)) : 0" },
+        { "type": "formula", "as": "expected", "expr": "datum.n > 0 ? datum.density * datum.binw * datum.n : 0" }
+      ]
+    },
+
+    {
+      "name": "inside",
+      "source": "dataset",
+      "transform": [
+        { "type": "filter", "expr": "hasUSL && hasLSL ? datum.x >= lslSig && datum.x <= uslSig : false" },
+        { "type": "aggregate", "ops": ["count"], "as": ["count"] }
+      ]
+    }
+  ],
+
+  "signals": [
+    { "name": "container", "update": "containerSize()" },
+    { "name": "viewW", "update": "container[0]" },
+    { "name": "viewH", "update": "container[1]" },
+    { "name": "maxBins", "update": "15" },
+    { "name": "fontBase", "update": "viewW>900?12:(viewW>600?11:10)" },
+    { "name": "fontAxis", "update": "fontBase" },
+    { "name": "fontAxisTitle", "update": "fontBase+1" },
+    { "name": "fontLabel", "update": "fontBase" },
+    { "name": "fontHeader", "update": "fontBase+1" },
+    { "name": "muSig", "update": "data('specs').length ? data('specs')[0].mu : 0" },
+    { "name": "sigmaSig", "update": "data('specs').length ? data('specs')[0].sigma : 0" },
+    { "name": "nSig", "update": "data('specs').length ? data('specs')[0].n : 0" },
+    { "name": "hasUSL", "update": "data('specs').length ? data('specs')[0].hasUSL : false" },
+    { "name": "hasLSL", "update": "data('specs').length ? data('specs')[0].hasLSL : false" },
+    { "name": "uslSig", "update": "hasUSL ? data('specs')[0].usl : muSig + 3*sigmaSig" },
+    { "name": "lslSig", "update": "hasLSL ? data('specs')[0].lsl : muSig - 3*sigmaSig" },
+    { "name": "targetMuSig", "update": "hasUSL && hasLSL ? (uslSig + lslSig)/2 : muSig" },
+    { "name": "xDataMin", "update": "isValid(xExtent[0]) ? xExtent[0] : 0" },
+    { "name": "xDataMax", "update": "isValid(xExtent[1]) ? xExtent[1] : 1" },
+    { "name": "xDomain", "update": "[min(xDataMin, lslSig), max(xDataMax, uslSig)]" },
+    { "name": "cpSig", "update": "hasUSL && hasLSL && sigmaSig > 0 ? (uslSig - lslSig) / (6 * sigmaSig) : null" },
+    { "name": "cpkSig", "update": "hasUSL && hasLSL && sigmaSig > 0 ? min((uslSig - muSig)/(3*sigmaSig), (muSig - lslSig)/(3*sigmaSig)) : null" },
+    { "name": "capIndex", "update": "cpSig!=null && cpkSig!=null ? min(cpSig, cpkSig) : (cpkSig!=null ? cpkSig : (cpSig!=null ? cpSig : null))" },
+    { "name": "capClass", "update": "capIndex==null ? null : capIndex < 1 ? 'Low' : capIndex < 1.33 ? 'Moderate' : capIndex < 1.67 ? 'Capable' : capIndex < 2 ? 'Very Capable' : 'Excellent'" },
+    { "name": "insideCount", "update": "data('inside').length ? data('inside')[0].count : 0" },
+    { "name": "insidePct", "update": "nSig > 0 && hasUSL && hasLSL ? (insideCount/nSig)*100 : null" },
+    { "name": "outsidePct", "update": "insidePct!=null ? 100 - insidePct : null" },
+    { "name": "headerY", "update": "-(fontHeader*2.6)" },
+    { "name": "inOutY", "update": "headerY + fontHeader*1.4" },
+    { "name": "kpiX", "update": "width*0.5" },
+    { "name": "inOutX", "update": "kpiX" }
+  ],
+
+  "scales": [
+    { "name": "x", "type": "linear", "range": "width", "nice": false, "zero": false, "domain": { "signal": "xDomain" } },
+    { "name": "y", "type": "linear", "range": "height", "nice": true, "zero": true, "domain": { "fields": [ { "data": "hist", "field": "count" }, { "data": "pdf", "field": "expected" } ] } }
+  ],
+
+  "axes": [
+    { "orient": "bottom", "scale": "x", "title": "Measurement", "labelFont": "Bahnschrift", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#6f6f6f", "grid": false, "ticks": false, "labelPadding": 4 },
+    { "orient": "left", "scale": "y", "title": "Count", "labelFont": "Bahnschrift", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#6f6f6f", "zindex": 1, "grid": true, "gridColor": "#000", "gridOpacity": 0.05, "gridWidth": 1, "tickCount": 4, "labelPadding": 4 }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "description": "Left tail shading (below LSL)",
+      "clip": true,
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "xDomain[0]" },
+          "x2": { "scale": "x", "signal": "lslSig" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "fill": { "value": "#e15759" },
+          "opacity": { "signal": "sigmaSig > 0 ? 0.08 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "description": "Right tail shading (above USL)",
+      "clip": true,
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "uslSig" },
+          "x2": { "scale": "x", "signal": "xDomain[1]" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "fill": { "value": "#e15759" },
+          "opacity": { "signal": "sigmaSig > 0 ? 0.08 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "description": "Histogram bars",
+      "from": { "data": "hist" },
+      "clip": true,
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "field": "bin0" },
+          "x2": { "scale": "x", "field": "bin1" },
+          "y": { "scale": "y", "field": "count" },
+          "y2": { "scale": "y", "value": 0 },
+          "fill": { "value": "#f5f5f5" },
+          "stroke": { "value": "#1f2937" },
+          "strokeWidth": { "value": 0.5 },
+          "strokeOpacity": { "value": 0.8 },
+          "opacity": { "value": 0.95 },
+          "tooltip": { "signal": "{Bin_Start: format(datum.bin0, ',.3f'), Bin_End: format(datum.bin1, ',.3f'), Count: datum.count, Percent: nSig > 0 ? format((datum.count/nSig)*100, '0.1f') + '%':'n/a', Density: nSig > 0 ? format(datum.count/(nSig*(datum.bin1-datum.bin0)), '0.3f') : 'n/a'}" }
+        }
+      }
+    },
+
+    {
+      "type": "line",
+      "description": "Fitted normal curve scaled to histogram counts",
+      "clip": true,
+      "from": { "data": "pdf" },
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "field": "mid" },
+          "y": { "scale": "y", "field": "expected" },
+          "stroke": { "value": "#8a8a8a" },
+          "strokeWidth": { "value": 1.5 },
+          "interpolate": { "value": "monotone" },
+          "opacity": { "value": 1 },
+          "tooltip": { "signal": "{mu: format(muSig, ',.3f'), sigma: format(sigmaSig, ',.3f')}" }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "description": "Target mean (mid-spec)",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "targetMuSig" },
+          "x2": { "scale": "x", "signal": "targetMuSig" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#777" },
+          "strokeDash": { "value": [2, 4] },
+          "strokeWidth": { "value": 2.5 },
+          "opacity": { "signal": "hasUSL && hasLSL ? 0.8 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "description": "Mean (mu)",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "muSig" },
+          "x2": { "scale": "x", "signal": "muSig" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#7a7a7a" },
+          "strokeDash": { "value": [] },
+          "strokeWidth": { "value": 1.5 }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "description": "USL line",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "uslSig" },
+          "x2": { "scale": "x", "signal": "uslSig" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#d35b56" },
+          "strokeDash": { "value": [6, 3] },
+          "strokeWidth": { "value": 1.5 },
+          "opacity": { "signal": "sigmaSig > 0 ? 0.9 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "description": "LSL line",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "lslSig" },
+          "x2": { "scale": "x", "signal": "lslSig" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#d35b56" },
+          "strokeDash": { "value": [6, 3] },
+          "strokeWidth": { "value": 1.5 },
+          "opacity": { "signal": "sigmaSig > 0 ? 0.9 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "description": "USL label",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "uslSig" },
+          "y": { "value": -10 },
+          "text": { "signal": "sigmaSig > 0 ? 'USL: ' + format(uslSig, ',.3f') : ''" },
+          "align": { "value": "center" },
+          "baseline": { "value": "bottom" },
+          "fill": { "value": "#e15759" },
+          "fontSize": { "value": 10 },
+          "fontWeight": { "value": "bold" },
+          "opacity": { "signal": "sigmaSig > 0 ? 1 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "description": "LSL label",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "lslSig" },
+          "y": { "value": -10 },
+          "text": { "signal": "sigmaSig > 0 ? 'LSL: ' + format(lslSig, ',.3f') : ''" },
+          "align": { "value": "center" },
+          "baseline": { "value": "bottom" },
+          "fill": { "value": "#e15759" },
+          "fontSize": { "value": 10 },
+          "fontWeight": { "value": "bold" },
+          "opacity": { "signal": "sigmaSig > 0 ? 1 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "description": "KPI header",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiX" },
+          "y": { "signal": "headerY" },
+          "text": { "signal": "'n: ' + (nSig>0?format(nSig, '0'): '0') + '   μ: ' + format(muSig, ',.3f') + '   σ: ' + format(sigmaSig, ',.3f') + (cpSig!=null ? '   Cp: ' + format(cpSig, ',.2f') : '') + (cpkSig!=null ? '   Cpk: ' + format(cpkSig, ',.2f') : '') + (capClass!=null ? '   Capability: ' + capClass : '')" },
+          "fill": { "value": "#1f2937" },
+          "fontSize": { "signal": "fontHeader" },
+          "fontWeight": { "value": 500 },
+          "align": { "value": "center" },
+          "baseline": { "value": "bottom" }
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "description": "Inside (green) indicator next to In%",
+      "encode": {
+        "update": {
+          "x": { "signal": "inOutX - 35" },
+          "y": { "signal": "inOutY - fontHeader*0.4" },
+          "size": { "value": 80 },
+          "fill": { "value": "#16a34a" },
+          "stroke": { "value": "#0f172a" },
+          "strokeWidth": { "value": 0.6 },
+          "opacity": { "signal": "insidePct!=null ? 1 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "description": "Inside text",
+      "encode": {
+        "update": {
+          "x": { "signal": "inOutX - 27" },
+          "y": { "signal": "inOutY" },
+          "text": { "signal": "insidePct!=null ? 'In: ' + format(insidePct,'0.1f') + '%' : ''" },
+          "fill": { "value": "#1f2937" },
+          "fontSize": { "signal": "fontLabel" },
+          "fontWeight": { "value": 500 },
+          "baseline": { "value": "bottom" },
+          "align": { "value": "left" },
+          "opacity": { "signal": "insidePct!=null ? 1 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "symbol",
+      "description": "Outside (red) indicator next to Out%",
+      "encode": {
+        "update": {
+          "x": { "signal": "inOutX + 35" },
+          "y": { "signal": "inOutY - fontHeader*0.4" },
+          "size": { "value": 80 },
+          "fill": { "value": "#e15759" },
+          "stroke": { "value": "#0f172a" },
+          "strokeWidth": { "value": 0.6 },
+          "opacity": { "signal": "outsidePct!=null ? 1 : 0" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "description": "Outside text",
+      "encode": {
+        "update": {
+          "x": { "signal": "inOutX + 43" },
+          "y": { "signal": "inOutY" },
+          "text": { "signal": "outsidePct!=null ? 'Out: ' + format(outsidePct,'0.1f') + '%' : ''" },
+          "fill": { "value": "#1f2937" },
+          "fontSize": { "signal": "fontLabel" },
+          "fontWeight": { "value": 500 },
+          "baseline": { "value": "bottom" },
+          "align": { "value": "left" },
+          "opacity": { "signal": "outsidePct!=null ? 1 : 0" }
+        }
+      }
+    }
+  ],
+
+  "config": {
+    "axis": { "grid": true, "labelFontSize": 11, "titleFontSize": 12 },
+    "view": { "stroke": "transparent" },
+    "text": { "font": "Bahnschrift" }
+  }
+}
