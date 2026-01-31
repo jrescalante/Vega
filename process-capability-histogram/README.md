@@ -1,6 +1,6 @@
 # 📊 Process Capability Histogram (Vega / Deneb)
 
-A **Process Capability Histogram** built with **Vega v6** and rendered in **Deneb for Power BI**.
+A **Process Capability Histogram** built with **Vega** and rendered in **Deneb for Power BI**.
 This visual combines distribution analysis with statistical capability metrics to evaluate how well a process meets its specification limits.
 
 ---
