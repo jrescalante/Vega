@@ -140,15 +140,3 @@ No additional configuration is required.
 * Uses population standard deviation (`stdevp`)
 * Normal curve is descriptive only
 * Designed for interpretability over formal testing
-
----
-
-## 📦 Metadata
-
-* **Author:** José Rafael Escalante
-* **Version:** 1.0
-* **Tech:** Vega v6 · Deneb · Power BI
-
----
-
-🧠 *This visual follows SPC best practices and complements control charts such as I-MR, EWMA, and CUSUM.*
