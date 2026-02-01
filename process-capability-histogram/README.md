@@ -1,4 +1,4 @@
-# 📊 Process Capability Histogram - Vega Spec for Deneb
+# Process Capability Histogram - Vega Spec for Deneb
 
 ![Process Capability Histogram](https://sentidoanalitica.com/wp-content/uploads/2026/01/process-capability-histogram.gif)
 
