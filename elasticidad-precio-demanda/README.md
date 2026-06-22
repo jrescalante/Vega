@@ -1,196 +1,172 @@
-# Elasticidad Precio-Demanda – Documentación
+# 📈 Elasticidad Precio-Demanda en Power BI con Vega
 
-# 📊 Elasticidad Precio-Demanda (Vega / Deneb)
+## 📌 Descripción
 
-Un visual de **Elasticidad Precio-Demanda** desarrollado con **Vega v6** y renderizado en **Deneb** para Power BI.
+Este proyecto implementa un objeto visual personalizado en **Power BI** utilizando **Deneb (Vega)** para analizar la **elasticidad precio-demanda** de productos.
 
-Este objeto visual analiza la relación entre las variaciones de precio y demanda mediante un diagrama de dispersión, calculando automáticamente la elasticidad arco para cada producto. Además, clasifica cada observación según su comportamiento comercial y resume los principales indicadores para facilitar la toma de decisiones.
-
-Esta carpeta contiene una especificación Vega diseñada para utilizarse con Deneb en Power BI:
-
-* **price-demand-elasticity.json:** Especificación Vega (versión en español)
-* **Price-Demand-Elasticity.pbix:** Archivo de Power BI con el visual renderizado en Deneb
-
-Este archivo JSON contiene una especificación completa y autocontenida de Vega, enfocada en el análisis económico, la interpretación visual y el uso práctico en inteligencia de negocios.
+El visual calcula automáticamente la elasticidad utilizando variaciones porcentuales entre períodos consecutivos y clasifica cada producto según su sensibilidad al precio. Además, incorpora indicadores resumidos, tooltips enriquecidos e interacciones para facilitar el análisis comercial.
 
 ---
 
-# 🚀 ¿Qué hace este visual?
+# 🎯 ¿Qué hace este visual?
 
-Este visual permite:
+El visual permite:
 
-* Analizar la relación entre el cambio porcentual del precio y la demanda.
-* Calcular automáticamente la elasticidad arco de cada producto.
-* Clasificar los productos según su comportamiento de elasticidad.
-* Visualizar simultáneamente precio, demanda y elasticidad en un solo gráfico.
-* Identificar oportunidades comerciales mediante cuadrantes estratégicos.
-* Mostrar indicadores generales del conjunto de datos.
-
-El visual está diseñado para ser completamente autocontenido, adaptable y reutilizable en distintos conjuntos de datos.
+- Calcular automáticamente la elasticidad precio-demanda.
+- Clasificar productos según su sensibilidad al precio.
+- Identificar productos elásticos, inelásticos y de comportamiento atípico.
+- Analizar el impacto de cambios de precio sobre las ventas.
+- Explorar información mediante tooltips e interacción con Power BI.
 
 ---
 
 # 📦 Contenido del repositorio
 
-Este repositorio incluye todo lo necesario para utilizar y explorar el visual:
+Este repositorio incluye todo lo necesario para utilizar y explorar el visual.
 
 ### 📄 Especificación Vega (JSON)
 
-Definición completa del objeto visual, incluyendo cálculos internos, clasificación de elasticidad, cuadrantes, KPIs, escalas y elementos gráficos.
+Contiene la definición completa del objeto visual, incluyendo:
+
+- Transformaciones de datos.
+- Cálculos estadísticos.
+- Reglas de clasificación.
+- Diseño del gráfico.
+- Tooltips e interacciones.
 
 ### 📊 Archivo Power BI (.pbix)
 
-Ejemplo listo para usar con datos de muestra y el visual configurado en Deneb.
+Incluye un ejemplo completamente funcional con datos de muestra y el visual configurado en Deneb.
 
-> ℹ️ Los nombres de los archivos pueden cambiar, pero su estructura y propósito permanecen iguales.
-
----
-
-# 🧠 ¿Cuándo utilizar este visual?
-
-Utilice este visual cuando necesite responder preguntas como:
-
-* ¿Cómo responde la demanda ante cambios en el precio?
-* ¿Qué productos presentan demanda elástica o inelástica?
-* ¿Qué artículos generan oportunidades de incremento de precio?
-* ¿Qué productos podrían requerir promociones o estrategias comerciales?
-* ¿Cómo se distribuyen los productos según su sensibilidad al precio?
-
-Aplicable a:
-
-* 🛒 Retail
-* 📦 Consumo masivo
-* 🏪 Comercio electrónico
-* 💲 Estrategias de precios
-* 📈 Revenue Management
+> ℹ️ Los nombres de los archivos pueden variar, pero su propósito y estructura permanecen iguales.
 
 ---
 
 # 📥 Requisitos de datos
 
-## Campos requeridos
+El visual requiere únicamente cinco campos para realizar todos los cálculos de elasticidad. De forma opcional, es posible incluir información descriptiva para enriquecer las etiquetas y los tooltips.
 
-| Campo             | Tipo     | Descripción                |
-| ----------------- | -------- | -------------------------- |
-| Fecha             | Fecha    | Período de análisis        |
-| SKU               | Texto    | Identificador del producto |
-| Producto          | Texto    | Nombre del producto        |
-| Categoría         | Texto    | Categoría comercial        |
-| Precio Unitario   | Numérico | Precio de venta            |
-| Unidades Vendidas | Numérico | Cantidad vendida           |
-| Ingresos          | Numérico | Ventas totales             |
+## Campos obligatorios
 
-> ℹ️ El visual requiere únicamente estas siete columnas. Todos los cálculos se realizan internamente en Vega.
+| Campo | Tipo | Descripción |
+|--------|------|-------------|
+| Fecha | Fecha | Período de análisis. |
+| SKU | Texto | Identificador único del producto. |
+| Precio_Unitario | Numérico | Precio de venta del producto. |
+| Unidades_Vendidas | Numérico | Cantidad vendida en cada período. |
+| Ingresos | Numérico | Ventas totales del período. |
+
+## Campos opcionales
+
+| Campo | Tipo | Descripción |
+|--------|------|-------------|
+| Producto | Texto | Nombre descriptivo del producto. |
+| Categoria | Texto | Categoría comercial del producto. |
+
+> ℹ️ El visual funciona correctamente utilizando únicamente los campos obligatorios. Los campos opcionales se utilizan para mejorar la información mostrada en etiquetas y tooltips.
 
 ---
 
 # 📐 Cálculos realizados automáticamente
 
-El objeto visual calcula internamente:
+Todos los cálculos se ejecutan directamente dentro de Vega. No es necesario crear medidas DAX, columnas calculadas ni realizar transformaciones adicionales en Power Query.
 
-* Variación porcentual del precio.
-* Variación porcentual de la demanda.
-* Elasticidad arco.
-* Promedios de referencia.
-* Posición dentro de cada cuadrante.
-* Clasificación de elasticidad.
-* KPIs generales.
+El visual calcula automáticamente:
 
-No se requieren medidas DAX ni columnas calculadas.
+- Variación porcentual del precio.
+- Variación porcentual de las unidades vendidas.
+- Elasticidad precio-demanda.
+- Clasificación automática de elasticidad.
+- Variación de ingresos.
+- Tendencia de precio.
+- Tendencia de demanda.
+
+---
+
+# 📊 Clasificación de elasticidad
+
+Cada observación se clasifica automáticamente según el valor calculado.
+
+| Elasticidad | Interpretación |
+|--------------|---------------|
+| Mayor que 1 | Demanda elástica |
+| Entre 0 y 1 | Demanda inelástica |
+| Igual a 1 | Elasticidad unitaria |
+| Menor que 0 | Comportamiento atípico |
 
 ---
 
 # 📊 Elementos visuales
 
-## Diagrama de dispersión
+El objeto visual combina distintos componentes para facilitar la interpretación de la elasticidad precio-demanda.
 
-Cada punto representa un producto o SKU.
+Incluye:
 
-Los ejes muestran:
-
-* Variación porcentual del precio.
-* Variación porcentual de la demanda.
-
----
-
-## Cuadrantes
-
-Las líneas de referencia dividen el gráfico en cuatro cuadrantes que facilitan la interpretación estratégica del comportamiento de los productos.
-
----
-
-## Colores
-
-Cada punto se colorea según su clasificación de elasticidad, permitiendo identificar rápidamente diferentes comportamientos comerciales.
-
----
-
-## Tooltips
-
-Al pasar el cursor sobre un punto se muestran detalles como:
-
-* Producto
-* Categoría
-* Precio
-* Unidades
-* Variación del precio
-* Variación de la demanda
-* Elasticidad arco
-* Clasificación
+- Dispersión Precio vs Elasticidad.
+- Líneas de referencia.
+- Colores por clasificación.
+- Etiquetas inteligentes.
+- Tooltips enriquecidos.
+- Interacción con filtros de Power BI.
 
 ---
 
 # 🧾 Indicadores (KPIs)
 
-En la parte superior del visual se muestran indicadores resumidos como:
+Además del gráfico principal, el visual presenta indicadores resumidos que permiten obtener una visión general del comportamiento del conjunto de datos.
 
-* Total de productos analizados.
-* Elasticidad promedio.
-* Productos con demanda elástica.
-* Productos con demanda inelástica.
-* Otras métricas relevantes calculadas automáticamente.
+Los KPIs muestran:
 
-Todos los indicadores se actualizan dinámicamente con el contexto de filtros de Power BI.
-
----
-
-# ⚙️ Configuración
-
-No requiere parámetros adicionales.
-
-Una vez asignadas las columnas necesarias, el visual realiza automáticamente todos los cálculos y genera la representación gráfica.
+- Número total de productos.
+- Elasticidad promedio.
+- Productos elásticos.
+- Productos inelásticos.
+- Variación promedio de precio.
+- Variación promedio de demanda.
 
 ---
 
-# 🧩 Uso en Deneb (Power BI)
+# 💡 Casos de uso
 
-1. Agregue un visual de Deneb al reporte.
-2. Seleccione **Vega** como tipo de especificación.
-3. Pegue el contenido completo del archivo JSON.
-4. Asigne las siete columnas requeridas.
+Este visual resulta especialmente útil para:
 
-No es necesaria ninguna configuración adicional.
-
----
-
-# ⚠️ Notas
-
-* Todos los cálculos se realizan internamente mediante transformaciones de Vega.
-* No requiere medidas DAX.
-* No requiere tablas auxiliares.
-* Compatible con filtros y segmentadores de Power BI.
-* Diseñado para priorizar la interpretación visual y el análisis comercial.
+- Análisis de precios.
+- Revenue Management.
+- Pricing estratégico.
+- Retail.
+- Consumo masivo.
+- Manufactura.
+- Inteligencia Comercial.
+- Category Management.
 
 ---
 
-# 📦 Metadatos
+# ⚙️ Tecnologías utilizadas
 
-**Autor:** José Rafael Escalante
-
-**Versión:** 1.0
-
-**Tecnología:** Vega v6 · Deneb · Power BI
+- Power BI
+- Deneb
+- Vega
+- JSON
 
 ---
 
-🧠 Este visual facilita el análisis de estrategias de precios al combinar medidas de elasticidad con una representación visual intuitiva, completamente autocontenida y lista para reutilizarse en diferentes conjuntos de datos.
+# 🚀 Ventajas
+
+- Sin medidas DAX complejas.
+- Sin Power Query adicional.
+- Todo el procesamiento ocurre dentro de Vega.
+- Fácil integración en cualquier modelo de Power BI.
+- Alto rendimiento incluso con grandes volúmenes de datos.
+- Totalmente interactivo.
+
+---
+
+# 📄 Licencia
+
+Este proyecto se distribuye bajo la licencia MIT.
+
+---
+
+# 👤 Autor
+
+Desarrollado por **Carlos González**.
