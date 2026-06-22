@@ -1,0 +1,856 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "usermeta": {
+    "version": "1.0",
+    "developedBy": "Jose Rafael Escalante",
+    "gitHub": "https://github.com/jrescalante",
+    "linkedIn": "https://www.linkedin.com/in/jrescalante/",
+    "email": "jrescalante@sentidoanalitica.com",
+    "visualName": "Elasticidad Precio-Demanda Scatter",
+    "visualDescription": "Elasticidad precio-demanda scatter con variacion vs periodo previo, clasificacion de elasticidad y KPIs de contexto; listo para Deneb.",
+    "doc": {
+      "data_stage": [
+        "Dataset espera Fecha, SKU, Producto, Categoria, Precio_Unitario, Unidades_Vendidas e Ingresos.",
+        "Valida tipos, convierte numericos, ordena por SKU/Fecha y calcula el periodo previo mediante window lag."
+      ],
+      "layout_signals": [
+        "Signals container/viewW/viewH controlan tamano responsivo del visual.",
+        "Signals KPI y contexto gestionan posicionamiento de encabezados, texto y capa de lectura."
+      ],
+      "transform_stage": [
+        "Calcula variacion de precio, variacion de demanda, elasticidad arco, variacion de ingresos y clasificacion.",
+        "Aplica filtros de calidad (valores validos, positivos y cambios acotados) para puntos comparables."
+      ],
+      "visual_stage": [
+        "Scatter principal: X = variacion de precio, Y = variacion de demanda.",
+        "Color/forma por clasificacion, tamano por ingresos, cuadrantes, reglas de referencia y punto de contexto."
+      ],
+      "tooltip_stage": [
+        "Tooltips deshabilitados intencionalmente para una version publica mas limpia y uniforme."
+      ],
+      "deneb_usage": [
+        "Pega la spec en Deneb y enlaza las 7 columnas requeridas del modelo.",
+        "No usar URL local en dataset.values; el binding proviene del modelo en Power BI/Deneb."
+      ],
+      "doc_data": {
+        "dataset": "Normaliza campos base y deriva metricas para elasticidad y variaciones vs periodo previo.",
+        "scatter_stats": "Resumen agregado para promedios de variacion y conteo de eventos de cambio de precio.",
+        "latest_sku_points": "Recorta al ultimo punto por SKU y deriva indicadores para KPIs de exposicion.",
+        "sku_kpi_stats": "Agrega conteos/porcentajes y metricas de elasticidad ponderada por ingresos.",
+        "active_categories": "Categorias activas visibles segun filtros del contexto.",
+        "active_products": "Productos activos visibles segun filtros del contexto.",
+        "latest_context_point": "Punto mas reciente para resalte visual contextual."
+      }
+    }
+  },
+  "description": "Elasticidad Precio-Demanda Scatter base. Usa Fecha, SKU, Producto, Categoria, Precio_Unitario, Unidades_Vendidas e Ingresos.",
+  "bounds": "flush",
+  "autosize": { "type": "fit", "contains": "padding", "resize": true },
+  "padding": { "top": 20, "right": 78, "bottom": 56, "left": 78 },
+  "width": { "signal": "viewW" },
+  "height": { "signal": "viewH" },
+  "background": "white",
+  "data": [
+    {
+      "name": "dataset",
+      "values": [],
+      "transform": [
+        { "type": "formula", "as": "fecha_val", "expr": "isDate(datum.Fecha) ? datum.Fecha : (test('^\\d{2}/\\d{2}/\\d{4}$', toString(datum.Fecha)) ? timeParse(toString(datum.Fecha), '%d/%m/%Y') : toDate(datum.Fecha))" },
+        { "type": "formula", "as": "sku_key", "expr": "toString(datum.SKU)" },
+        { "type": "formula", "as": "producto", "expr": "isValid(datum.Producto) ? toString(datum.Producto) : ''" },
+        { "type": "formula", "as": "categoria", "expr": "isValid(datum.Categoria) ? toString(datum.Categoria) : ''" },
+        { "type": "formula", "as": "precio", "expr": "toNumber(datum.Precio_Unitario)" },
+        { "type": "formula", "as": "unidades", "expr": "toNumber(datum.Unidades_Vendidas)" },
+        { "type": "formula", "as": "ingresos", "expr": "toNumber(datum.Ingresos)" },
+        { "type": "filter", "expr": "isValid(datum.fecha_val) && isValid(datum.sku_key) && isValid(datum.precio) && isValid(datum.unidades) && isValid(datum.ingresos) && datum.precio > 0 && datum.unidades > 0 && datum.ingresos > 0" },
+        { "type": "collect", "sort": { "field": ["sku_key", "fecha_val"], "order": ["ascending", "ascending"] } },
+        {
+          "type": "window",
+          "groupby": ["sku_key"],
+          "sort": { "field": ["fecha_val"], "order": ["ascending"] },
+          "ops": ["lag", "lag", "lag"],
+          "fields": ["precio", "unidades", "ingresos"],
+          "as": ["precio_prev", "unidades_prev", "ingresos_prev"]
+        },
+        { "type": "formula", "as": "delta_precio_pct", "expr": "isValid(datum.precio_prev) && datum.precio_prev != 0 ? (datum.precio - datum.precio_prev) / datum.precio_prev : null" },
+        { "type": "formula", "as": "delta_demanda_pct", "expr": "isValid(datum.unidades_prev) && datum.unidades_prev != 0 ? (datum.unidades - datum.unidades_prev) / datum.unidades_prev : null" },
+        { "type": "formula", "as": "promedio_precio", "expr": "isValid(datum.precio_prev) ? (datum.precio + datum.precio_prev) / 2 : null" },
+        { "type": "formula", "as": "promedio_unidades", "expr": "isValid(datum.unidades_prev) ? (datum.unidades + datum.unidades_prev) / 2 : null" },
+        {
+          "type": "formula",
+          "as": "elasticidad_arco",
+          "expr": "isValid(datum.promedio_precio) && isValid(datum.promedio_unidades) && datum.promedio_precio != 0 && datum.promedio_unidades != 0 && isValid(datum.precio_prev) && datum.precio != datum.precio_prev ? (((datum.unidades - datum.unidades_prev) / datum.promedio_unidades) / ((datum.precio - datum.precio_prev) / datum.promedio_precio)) : null"
+        },
+        { "type": "formula", "as": "delta_ingresos_pct", "expr": "isValid(datum.ingresos_prev) && datum.ingresos_prev != 0 ? (datum.ingresos - datum.ingresos_prev) / datum.ingresos_prev : null" },
+        { "type": "formula", "as": "price_change_flag", "expr": "isValid(datum.delta_precio_pct) && abs(datum.delta_precio_pct) > 0.0001 ? 1 : 0" },
+        {
+          "type": "formula",
+          "as": "clasificacion",
+          "expr": "!isValid(datum.elasticidad_arco) ? 'Sin base' : datum.elasticidad_arco >= 0 ? 'Anomala' : abs(datum.elasticidad_arco) > 1.05 ? 'Elastica' : abs(datum.elasticidad_arco) >= 0.95 ? 'Unitaria' : 'Inelastica'"
+        },
+        { "type": "formula", "as": "abs_elasticidad", "expr": "isValid(datum.elasticidad_arco) ? abs(datum.elasticidad_arco) : null" },
+        { "type": "formula", "as": "periodo", "expr": "timeFormat(datum.fecha_val, '%b %Y')" },
+        { "type": "filter", "expr": "isValid(datum.precio_prev) && isValid(datum.unidades_prev) && isValid(datum.delta_precio_pct) && isValid(datum.delta_demanda_pct) && datum.price_change_flag == 1 && abs(datum.delta_precio_pct) <= 0.5 && abs(datum.delta_demanda_pct) <= 0.5" }
+      ]
+    },
+    {
+      "name": "scatter_stats",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["delta_precio_pct", "delta_demanda_pct", "elasticidad_arco", "ingresos", "price_change_flag"],
+          "ops": ["mean", "mean", "mean", "sum", "sum"],
+          "as": ["avg_delta_precio", "avg_delta_demanda", "avg_elasticidad", "total_ingresos", "price_change_events"]
+        },
+        { "type": "joinaggregate", "ops": ["count"], "as": ["puntos"] }
+      ]
+    },
+    {
+      "name": "latest_sku_points",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "window",
+          "groupby": ["sku_key"],
+          "sort": { "field": ["fecha_val"], "order": ["descending"] },
+          "ops": ["row_number"],
+          "as": ["sku_rank_desc"]
+        },
+        { "type": "filter", "expr": "datum.sku_rank_desc == 1" },
+        { "type": "formula", "as": "is_elastic", "expr": "datum.clasificacion == 'Elastica' ? 1 : 0" },
+        { "type": "formula", "as": "is_risk", "expr": "datum.delta_precio_pct > 0 && datum.delta_demanda_pct < 0 ? 1 : 0" },
+        { "type": "formula", "as": "is_capture", "expr": "datum.delta_precio_pct > 0 && datum.delta_demanda_pct > 0 ? 1 : 0" },
+        { "type": "formula", "as": "has_price_change", "expr": "datum.price_change_flag == 1 ? 1 : 0" },
+        { "type": "formula", "as": "exposed_ingresos", "expr": "datum.is_risk == 1 || datum.is_elastic == 1 ? datum.ingresos : 0" },
+        { "type": "formula", "as": "weighted_elasticidad", "expr": "isValid(datum.elasticidad_arco) ? datum.elasticidad_arco * datum.ingresos : 0" },
+        { "type": "formula", "as": "valid_elasticidad_ingresos", "expr": "isValid(datum.elasticidad_arco) ? datum.ingresos : 0" }
+      ]
+    },
+    {
+      "name": "latest_context_point",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "window",
+          "sort": { "field": ["fecha_val", "ingresos"], "order": ["descending", "descending"] },
+          "ops": ["row_number"],
+          "as": ["context_rank_desc"]
+        },
+        { "type": "filter", "expr": "datum.context_rank_desc == 1" }
+      ]
+    },
+    {
+      "name": "sku_kpi_stats",
+      "source": "latest_sku_points",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": [
+            "sku_key",
+            "is_elastic",
+            "is_risk",
+            "is_capture",
+            "has_price_change",
+            "exposed_ingresos",
+            "weighted_elasticidad",
+            "valid_elasticidad_ingresos",
+            "ingresos"
+          ],
+          "ops": [
+            "count",
+            "sum",
+            "sum",
+            "sum",
+            "sum",
+            "sum",
+            "sum",
+            "sum",
+            "sum"
+          ],
+          "as": [
+            "sku_count",
+            "elastic_sku_count",
+            "risk_sku_count",
+            "capture_sku_count",
+            "price_change_sku_count",
+            "exposed_ingresos",
+            "weighted_elasticidad_sum",
+            "valid_elasticidad_ingresos_sum",
+            "visible_ingresos"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "active_categories",
+      "source": "dataset",
+      "transform": [
+        { "type": "aggregate", "groupby": ["categoria"] }
+      ]
+    },
+    {
+      "name": "active_products",
+      "source": "dataset",
+      "transform": [
+        { "type": "aggregate", "groupby": ["producto", "categoria"] }
+      ]
+    },
+    {
+      "name": "quadrant_labels",
+      "values": [
+        { "label": "Riesgo de volumen", "subLabel": "Precio sube y la demanda se contrae", "x": 0.75, "y": 0.80 },
+        { "label": "Impulso promocional", "subLabel": "Precio baja y la demanda responde", "x": 0.20, "y": 0.16 },
+        { "label": "Deterioro mixto", "subLabel": "Ni precio ni demanda sostienen el resultado", "x": 0.20, "y": 0.80 },
+        { "label": "Captura de valor", "subLabel": "Precio sube con demanda resiliente", "x": 0.75, "y": 0.16 }
+      ]
+    },
+    {
+      "name": "class_legend_items",
+      "values": [
+        { "label": "Elastica", "criterion": "|E| > 1.05", "shape": "triangle-up", "detailShape": "triangle-down", "fill": "#e36b76", "stroke": "#a93f4b", "detailFill": "#f8f4f1", "y": 126 },
+        { "label": "Unitaria", "criterion": "0.95 <= |E| <= 1.05", "shape": "diamond", "detailShape": "diamond", "fill": "#f9d5b1", "stroke": "#b87235", "detailFill": "#b87235", "y": 156 },
+        { "label": "Inelastica", "criterion": "|E| < 0.95", "shape": "circle", "detailShape": "circle", "fill": "#c2d9e9", "stroke": "#3f6f95", "detailFill": "#3f6f95", "y": 186 },
+        { "label": "Anomala", "criterion": "E >= 0", "shape": "square", "detailShape": "cross", "fill": "#e5cef7", "stroke": "#764695", "detailFill": "#764695", "y": 216 }
+      ]
+    }
+  ],
+  "signals": [
+    { "name": "container", "update": "containerSize()" },
+    { "name": "viewW", "update": "container[0]" },
+    { "name": "viewH", "update": "container[1]" },
+    { "name": "summaryCenterX", "update": "width * 0.5" },
+    { "name": "summaryContextY", "update": "-50" },
+    { "name": "summaryKpiY", "update": "-30" },
+    { "name": "kpiRowLeft", "update": "-64" },
+    { "name": "kpiRowRight", "update": "width + 84" },
+    { "name": "kpiRowWidth", "update": "kpiRowRight - kpiRowLeft" },
+    { "name": "kpiCol1", "update": "kpiRowLeft + kpiRowWidth * 0.09" },
+    { "name": "kpiCol2", "update": "kpiRowLeft + kpiRowWidth * 0.28" },
+    { "name": "kpiCol3", "update": "kpiRowLeft + kpiRowWidth * 0.47" },
+    { "name": "kpiCol4", "update": "kpiRowLeft + kpiRowWidth * 0.66" },
+    { "name": "kpiCol5", "update": "kpiRowLeft + kpiRowWidth * 0.88" },
+    { "name": "meanX", "update": "data('scatter_stats').length ? data('scatter_stats')[0].avg_delta_precio : 0" },
+    { "name": "meanY", "update": "data('scatter_stats').length ? data('scatter_stats')[0].avg_delta_demanda : 0" },
+    { "name": "priceChangeEvents", "update": "data('scatter_stats').length ? data('scatter_stats')[0].price_change_events : 0" },
+    { "name": "pointCount", "update": "data('dataset').length" },
+    { "name": "skuCount", "update": "data('sku_kpi_stats').length ? data('sku_kpi_stats')[0].sku_count : 0" },
+    { "name": "elasticSkuPct", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].sku_count ? data('sku_kpi_stats')[0].elastic_sku_count / data('sku_kpi_stats')[0].sku_count : 0" },
+    { "name": "riskSkuPct", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].sku_count ? data('sku_kpi_stats')[0].risk_sku_count / data('sku_kpi_stats')[0].sku_count : 0" },
+    { "name": "captureSkuPct", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].sku_count ? data('sku_kpi_stats')[0].capture_sku_count / data('sku_kpi_stats')[0].sku_count : 0" },
+    { "name": "priceChangeSkuPct", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].sku_count ? data('sku_kpi_stats')[0].price_change_sku_count / data('sku_kpi_stats')[0].sku_count : 0" },
+    { "name": "exposedIngresos", "update": "data('sku_kpi_stats').length ? data('sku_kpi_stats')[0].exposed_ingresos : 0" },
+    { "name": "visibleIngresos", "update": "data('sku_kpi_stats').length ? data('sku_kpi_stats')[0].visible_ingresos : 0" },
+    { "name": "exposedIngresosPct", "update": "visibleIngresos ? exposedIngresos / visibleIngresos : 0" },
+    { "name": "weightedElasticidad", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].valid_elasticidad_ingresos_sum ? data('sku_kpi_stats')[0].weighted_elasticidad_sum / data('sku_kpi_stats')[0].valid_elasticidad_ingresos_sum : 0" },
+    { "name": "weightedElasticidadLabel", "update": "data('sku_kpi_stats').length && data('sku_kpi_stats')[0].valid_elasticidad_ingresos_sum ? (weightedElasticidad >= 0 ? 'Anomala' : abs(weightedElasticidad) > 1.05 ? 'Elastica' : abs(weightedElasticidad) >= 0.95 ? 'Unitaria' : 'Inelastica') : 'Sin base'" },
+    { "name": "weightedElasticidadColor", "update": "weightedElasticidadLabel === 'Elastica' ? '#a93f4b' : weightedElasticidadLabel === 'Unitaria' ? '#b87235' : weightedElasticidadLabel === 'Inelastica' ? '#3f6f95' : weightedElasticidadLabel === 'Anomala' ? '#764695' : '#52607a'" },
+    { "name": "activeCategoryCount", "update": "data('active_categories').length" },
+    { "name": "activeProductCount", "update": "data('active_products').length" },
+    { "name": "showFocusedLatestPoint", "update": "activeCategoryCount == 1 || activeProductCount == 1" },
+    {
+      "name": "contextLabel",
+      "update": "activeProductCount === 1 ? 'Vista: ' + data('active_products')[0].producto + ' | ' + data('active_products')[0].categoria : activeCategoryCount === 1 ? 'Vista: ' + data('active_categories')[0].categoria + ' | ' + format(activeProductCount, ',.0f') + ' productos' : 'Vista: ' + format(activeCategoryCount, ',.0f') + ' categorias | ' + format(activeProductCount, ',.0f') + ' productos'"
+    }
+  ],
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": { "fields": [ { "data": "dataset", "field": "delta_precio_pct" } ] },
+      "range": "width",
+      "zero": true,
+      "nice": true
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": { "fields": [ { "data": "dataset", "field": "delta_demanda_pct" } ] },
+      "range": "height",
+      "zero": true,
+      "nice": true
+    },
+    {
+      "name": "size",
+      "type": "sqrt",
+      "domain": { "data": "dataset", "field": "ingresos" },
+      "range": [112, 380],
+      "zero": true
+    },
+    {
+      "name": "shape",
+      "type": "ordinal",
+      "domain": ["Elastica", "Unitaria", "Inelastica", "Anomala"],
+      "range": ["triangle-up", "diamond", "circle", "square"]
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": ["Elastica", "Unitaria", "Inelastica", "Anomala"],
+      "range": ["#e36b76", "#f9d5b1", "#c2d9e9", "#e5cef7"]
+    },
+    {
+      "name": "strokeColor",
+      "type": "ordinal",
+      "domain": ["Elastica", "Unitaria", "Inelastica", "Anomala"],
+      "range": ["#a93f4b", "#b87235", "#3f6f95", "#764695"]
+    },
+    {
+      "name": "detailShape",
+      "type": "ordinal",
+      "domain": ["Elastica", "Unitaria", "Inelastica", "Anomala"],
+      "range": ["triangle-down", "diamond", "circle", "cross"]
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "x",
+      "title": "Variacion de precio vs periodo previo",
+      "titlePadding": 14,
+      "format": ".0%",
+      "grid": true,
+      "gridColor": "#e9edf5",
+      "gridOpacity": 1,
+      "labelFont": "Bahnschrift",
+      "labelFontSize": 11,
+      "labelColor": "#667085",
+      "titleFont": "Bahnschrift SemiBold",
+      "titleFontSize": 12,
+      "titleColor": "#475467"
+    },
+    {
+      "orient": "left",
+      "scale": "y",
+      "title": "Variacion de demanda vs periodo previo",
+      "titlePadding": 16,
+      "format": ".0%",
+      "grid": true,
+      "gridColor": "#e9edf5",
+      "gridOpacity": 1,
+      "labelFont": "Bahnschrift",
+      "labelFontSize": 11,
+      "labelColor": "#667085",
+      "titleFont": "Bahnschrift SemiBold",
+      "titleFontSize": 12,
+      "titleColor": "#475467"
+    }
+  ],
+  "legends": [],
+  "marks": [
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "summaryCenterX" },
+          "y": { "signal": "summaryContextY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 11 },
+          "fill": { "value": "#7a8699" },
+          "text": { "signal": "contextLabel" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol1" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#52607a" },
+          "text": { "signal": "'Portafolio sensible: ' + format(elasticSkuPct, '.0%')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol2" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#52607a" },
+          "text": { "signal": "'Riesgo de volumen: ' + format(riskSkuPct, '.0%')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol3" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#52607a" },
+          "text": { "signal": "'Captura de valor: ' + format(captureSkuPct, '.0%')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol4" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#52607a" },
+          "text": { "signal": "'Ventas expuestas: ' + format(exposedIngresosPct, '.0%')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol5 - 4" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "right" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#52607a" },
+          "text": { "value": "Elasticidad ponderada:" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol5 + 4" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "signal": "weightedElasticidadColor" },
+          "text": { "signal": "weightedElasticidadLabel === 'Sin base' ? 'Sin base' : weightedElasticidadLabel + ' (' + format(weightedElasticidad, '.2f') + ')'" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 8" },
+          "y": { "value": 102 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 12 },
+          "fill": { "value": "#344054" },
+          "text": { "value": "Clasificacion" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 8" },
+          "y": { "value": 248 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 11 },
+          "fill": { "value": "#344054" },
+          "text": { "value": "Lectura actual" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 8" },
+          "y": { "value": 268 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#667085" },
+          "text": { "signal": "'Cambios de precio: ' + format(priceChangeEvents, ',.0f')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 8" },
+          "y": { "value": 286 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#667085" },
+          "text": { "signal": "'Var. precio prom: ' + format(meanX, '+.1%')" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 8" },
+          "y": { "value": 304 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#667085" },
+          "text": { "signal": "'Var. demanda prom: ' + format(meanY, '+.1%')" }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": { "data": "class_legend_items" },
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 16" },
+          "y": { "field": "y" },
+          "shape": { "field": "shape" },
+          "size": { "value": 100 },
+          "fill": { "field": "fill" },
+          "stroke": { "field": "stroke" },
+          "strokeWidth": { "value": 1.3 },
+          "opacity": { "value": 0.9 }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": { "data": "class_legend_items" },
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 16" },
+          "y": { "field": "y" },
+          "shape": { "field": "detailShape" },
+          "size": { "value": 28 },
+          "fill": { "field": "detailFill" },
+          "stroke": { "field": "stroke" },
+          "strokeWidth": { "value": 0.8 },
+          "opacity": { "value": 1 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "class_legend_items" },
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 34" },
+          "y": { "field": "y", "offset": -4 },
+          "align": { "value": "left" },
+          "baseline": { "value": "middle" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10 },
+          "fill": { "value": "#475467" },
+          "text": { "field": "label" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "class_legend_items" },
+      "encode": {
+        "update": {
+          "x": { "signal": "width + 34" },
+          "y": { "field": "y", "offset": 8 },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 8.5 },
+          "fill": { "value": "#98a2b3" },
+          "text": { "field": "criterion" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "summaryCenterX - 260" },
+          "x2": { "signal": "summaryCenterX + 260" },
+          "y": { "signal": "summaryKpiY + 18" },
+          "stroke": { "value": "#d0d5dd" },
+          "strokeWidth": { "value": 1 }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "update": {
+          "x": { "value": 0 },
+          "x2": { "scale": "x", "value": 0 },
+          "y": { "value": 0 },
+          "y2": { "scale": "y", "value": 0 },
+          "fill": { "value": "#e7f0fb" },
+          "fillOpacity": { "value": 0.32 }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "value": 0 },
+          "x2": { "signal": "width" },
+          "y": { "value": 0 },
+          "y2": { "scale": "y", "value": 0 },
+          "fill": { "value": "#fae8ea" },
+          "fillOpacity": { "value": 0.29 }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "update": {
+          "x": { "value": 0 },
+          "x2": { "scale": "x", "value": 0 },
+          "y": { "scale": "y", "value": 0 },
+          "y2": { "signal": "height" },
+          "fill": { "value": "#f7ecd7" },
+          "fillOpacity": { "value": 0.29 }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "value": 0 },
+          "x2": { "signal": "width" },
+          "y": { "scale": "y", "value": 0 },
+          "y2": { "signal": "height" },
+          "fill": { "value": "#eee5cf" },
+          "fillOpacity": { "value": 0.25 }
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "value": 0 },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#98a2b3" },
+          "strokeWidth": { "value": 1.25 },
+          "strokeDash": { "value": [4, 4] }
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "encode": {
+        "update": {
+          "y": { "scale": "y", "value": 0 },
+          "x": { "value": 0 },
+          "x2": { "signal": "width" },
+          "stroke": { "value": "#98a2b3" },
+          "strokeWidth": { "value": 1.25 },
+          "strokeDash": { "value": [4, 4] }
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "signal": "meanX" },
+          "y": { "value": 0 },
+          "y2": { "signal": "height" },
+          "stroke": { "value": "#d0d5dd" },
+          "strokeWidth": { "value": 1 },
+          "strokeDash": { "value": [2, 6] }
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "encode": {
+        "update": {
+          "y": { "scale": "y", "signal": "meanY" },
+          "x": { "value": 0 },
+          "x2": { "signal": "width" },
+          "stroke": { "value": "#d0d5dd" },
+          "strokeWidth": { "value": 1 },
+          "strokeDash": { "value": [2, 6] }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "value": 0 },
+          "y": { "signal": "height + 28" },
+          "align": { "value": "left" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#98a2b3" },
+          "text": { "value": "Precio baja" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "width" },
+          "y": { "signal": "height + 28" },
+          "align": { "value": "right" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#98a2b3" },
+          "text": { "value": "Precio sube" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "value": -10 },
+          "y": { "value": 6 },
+          "align": { "value": "right" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#98a2b3" },
+          "text": { "value": "Demanda sube" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "value": -10 },
+          "y": { "signal": "height - 6" },
+          "align": { "value": "right" },
+          "baseline": { "value": "bottom" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9.5 },
+          "fill": { "value": "#98a2b3" },
+          "text": { "value": "Demanda cae" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "quadrant_labels" },
+      "encode": {
+        "update": {
+          "x": { "signal": "datum.x * width" },
+          "y": { "signal": "datum.y * height" },
+          "text": { "field": "label" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 11 },
+          "fill": { "value": "#98a2b3" },
+          "align": { "value": "center" },
+          "baseline": { "value": "middle" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "quadrant_labels" },
+      "encode": {
+        "update": {
+          "x": { "signal": "datum.x * width" },
+          "y": { "signal": "datum.y * height + 16" },
+          "text": { "field": "subLabel" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 9 },
+          "fill": { "value": "#b0b8c7" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "name": "scatter-points",
+      "from": { "data": "dataset" },
+      "encode": {
+        "enter": {
+          "strokeWidth": { "value": 1.4 }
+        },
+        "update": {
+          "x": { "scale": "x", "field": "delta_precio_pct" },
+          "y": { "scale": "y", "field": "delta_demanda_pct" },
+          "shape": { "scale": "shape", "field": "clasificacion" },
+          "size": { "scale": "size", "field": "ingresos" },
+          "fill": { "signal": "datum.clasificacion === 'Unitaria' || datum.clasificacion === 'Anomala' ? '#f7f5f2' : scale('color', datum.clasificacion)" },
+          "stroke": { "scale": "strokeColor", "field": "clasificacion" },
+          "strokeWidth": { "value": 1.4 },
+          "opacity": { "value": 0.78 },
+          "tooltip": {
+            "signal": "{Periodo: datum.periodo, SKU: datum.sku_key, Producto: datum.producto, Categoria: datum.categoria, Clasificacion: datum.clasificacion, Elasticidad: isValid(datum.elasticidad_arco) ? format(datum.elasticidad_arco, '.2f') : 'n/a', 'Var. precio': format(datum.delta_precio_pct, '+.1%'), 'Var. demanda': format(datum.delta_demanda_pct, '+.1%'), 'Var. ingresos': isValid(datum.delta_ingresos_pct) ? format(datum.delta_ingresos_pct, '+.1%') : 'n/a', Ingresos: format(datum.ingresos, ',.2f')}"
+          }
+        },
+        "hover": {
+          "opacity": { "value": 1 },
+          "stroke": { "value": "#111827" },
+          "strokeWidth": { "value": 1.4 }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": { "data": "dataset" },
+      "interactive": false,
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "field": "delta_precio_pct" },
+          "y": { "scale": "y", "field": "delta_demanda_pct" },
+          "shape": { "scale": "detailShape", "field": "clasificacion" },
+          "size": { "signal": "datum.clasificacion === 'Anomala' ? 34 : datum.clasificacion === 'Elastica' ? 28 : 20" },
+          "fill": { "signal": "datum.clasificacion === 'Elastica' ? '#f7f5f2' : scale('strokeColor', datum.clasificacion)" },
+          "stroke": { "signal": "datum.clasificacion === 'Elastica' ? scale('strokeColor', datum.clasificacion) : datum.clasificacion === 'Anomala' ? scale('strokeColor', datum.clasificacion) : 'transparent'" },
+          "strokeWidth": { "signal": "datum.clasificacion === 'Elastica' || datum.clasificacion === 'Anomala' ? 0.8 : 0" },
+          "opacity": { "value": 0.95 }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": { "data": "latest_context_point" },
+      "interactive": false,
+      "encode": {
+        "update": {
+          "x": { "scale": "x", "field": "delta_precio_pct" },
+          "y": { "scale": "y", "field": "delta_demanda_pct" },
+          "shape": { "scale": "shape", "field": "clasificacion" },
+          "size": { "signal": "scale('size', datum.ingresos) + 90" },
+          "fill": { "value": "transparent" },
+          "stroke": { "value": "#1f2937" },
+          "strokeWidth": { "value": 2.1 },
+          "strokeOpacity": { "signal": "showFocusedLatestPoint ? 0.75 : 0" }
+        }
+      }
+    }
+  ]
+}
