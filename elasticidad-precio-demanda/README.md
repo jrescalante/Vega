@@ -140,33 +140,6 @@ Este visual resulta especialmente útil para:
 - Category Management.
 
 ---
-
-# ⚙️ Tecnologías utilizadas
-
-- Power BI
-- Deneb
-- Vega
-- JSON
-
----
-
-# 🚀 Ventajas
-
-- Sin medidas DAX complejas.
-- Sin Power Query adicional.
-- Todo el procesamiento ocurre dentro de Vega.
-- Fácil integración en cualquier modelo de Power BI.
-- Alto rendimiento incluso con grandes volúmenes de datos.
-- Totalmente interactivo.
-
----
-
-# 📄 Licencia
-
-Este proyecto se distribuye bajo la licencia MIT.
-
----
-
 # 👤 Autor
 
-Desarrollado por **Carlos González**.
+Desarrollado por **José Rafael Escalante**.
