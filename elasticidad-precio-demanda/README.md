@@ -140,8 +140,3 @@ Este visual resulta especialmente útil para:
 - Manufactura.
 - Inteligencia Comercial.
 - Category Management.
-
----
-# 👤 Autor
-
-Desarrollado por **José Rafael Escalante**.
