@@ -6,7 +6,7 @@
 
 Este proyecto implementa un objeto visual personalizado en **Power BI** utilizando **Deneb (Vega)** para analizar la **elasticidad precio-demanda** de productos.
 
-La versión actual del visual va más allá de un scatter clásico: calcula automáticamente elasticidad, clasifica el comportamiento comercial, organiza la lectura por cuadrantes y añade trazabilidad temporal cuando se filtra un solo producto. También incorpora tooltips adaptativos, KPIs superiores y una línea de tendencia opcional para apoyar la interpretación.
+La versión actual del visual va más allá de un gráfico de dispersión clásico: calcula automáticamente elasticidad, clasifica el comportamiento comercial, organiza la lectura por cuadrantes y añade trazabilidad temporal cuando se filtra un solo producto. También incorpora tooltips adaptativos, KPIs superiores y una línea de tendencia opcional para apoyar la interpretación.
 
 ---
 
