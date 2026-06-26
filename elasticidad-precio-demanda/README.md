@@ -1,6 +1,6 @@
 # Elasticidad Precio Demanda – Vega Spec para Deneb
 
-![Elasticidad Precio-Demanda](https://sentidoanalitica.com/wp-content/uploads/2026/06/elasticidad-precio-demanda-v1.gif)
+![Elasticidad Precio-Demanda](https://sentidoanalitica.com/wp-content/uploads/2026/06/elasticidad-precio-demanda-v2.gif)
 
 ## 📌 Descripción
 
