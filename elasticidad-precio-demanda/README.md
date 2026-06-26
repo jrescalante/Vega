@@ -6,7 +6,7 @@
 
 Este proyecto implementa un objeto visual personalizado en **Power BI** utilizando **Deneb (Vega)** para analizar la **elasticidad precio-demanda** de productos.
 
-El visual calcula automáticamente la elasticidad utilizando variaciones porcentuales entre períodos consecutivos y clasifica cada producto según su sensibilidad al precio. Además, incorpora indicadores resumidos, tooltips enriquecidos e interacciones para facilitar el análisis comercial.
+La versión actual del visual va más allá de un scatter clásico: calcula automáticamente elasticidad, clasifica el comportamiento comercial, organiza la lectura por cuadrantes y añade trazabilidad temporal cuando se filtra un solo producto. También incorpora tooltips adaptativos, KPIs superiores y una línea de tendencia opcional para apoyar la interpretación.
 
 ---
 
@@ -19,6 +19,9 @@ El visual permite:
 - Identificar productos elásticos, inelásticos y de comportamiento atípico.
 - Analizar el impacto de cambios de precio sobre las ventas.
 - Explorar información mediante tooltips e interacción con Power BI.
+- Leer el gráfico por cuadrantes con una semántica comercial clara.
+- Mostrar trazabilidad temporal y numeración de puntos cuando se selecciona un solo producto.
+- Activar una línea de tendencia solo cuando hay suficientes puntos para que sea interpretable.
 
 ---
 
@@ -35,6 +38,9 @@ Contiene la definición completa del objeto visual, incluyendo:
 - Reglas de clasificación.
 - Diseño del gráfico.
 - Tooltips e interacciones.
+- Cuadrantes con color semántico y etiquetas dinámicas.
+- Trazabilidad por producto filtrado.
+- Línea de tendencia condicional.
 
 ### 📊 Archivo Power BI (.pbix)
 
@@ -46,7 +52,7 @@ Incluye un ejemplo completamente funcional con datos de muestra y el visual conf
 
 # 📥 Requisitos de datos
 
-El visual requiere únicamente cinco campos para realizar todos los cálculos de elasticidad. De forma opcional, es posible incluir información descriptiva para enriquecer las etiquetas y los tooltips.
+El visual trabaja con cinco campos obligatorios para calcular elasticidad y puede enriquecerse con dos campos opcionales para mejorar etiquetas y tooltips.
 
 ## Campos obligatorios
 
@@ -65,7 +71,7 @@ El visual requiere únicamente cinco campos para realizar todos los cálculos de
 | Producto | Texto | Nombre descriptivo del producto. |
 | Categoria | Texto | Categoría comercial del producto. |
 
-> ℹ️ El visual funciona correctamente utilizando únicamente los campos obligatorios. Los campos opcionales se utilizan para mejorar la información mostrada en etiquetas y tooltips.
+> ℹ️ El visual funciona correctamente utilizando únicamente los campos obligatorios. Los campos opcionales se utilizan para mejorar la información mostrada en etiquetas, cuadrantes y tooltips.
 
 ---
 
@@ -82,6 +88,8 @@ El visual calcula automáticamente:
 - Variación de ingresos.
 - Tendencia de precio.
 - Tendencia de demanda.
+- Trazabilidad temporal por producto filtrado.
+- Regresión lineal de referencia cuando la muestra es suficiente.
 
 ---
 
@@ -100,31 +108,58 @@ Cada observación se clasifica automáticamente según el valor calculado.
 
 # 📊 Elementos visuales
 
-El objeto visual combina distintos componentes para facilitar la interpretación de la elasticidad precio-demanda.
+El objeto visual combina distintos componentes para facilitar una lectura técnica y comercial de la elasticidad precio-demanda.
 
 Incluye:
 
-- Dispersión Precio vs Elasticidad.
-- Líneas de referencia.
-- Colores por clasificación.
-- Etiquetas inteligentes.
-- Tooltips enriquecidos.
-- Interacción con filtros de Power BI.
+- **Dispersión principal**: muestra cada observación en el plano precio-demanda. Identifica patrones de elasticidad, concentración y dispersión.
+- **Cuadrantes comerciales**: separan el comportamiento en impulso promocional, captura de valor, deterioro mixto y riesgo de volumen. Traducen el punto técnico a una lectura accionable de negocio.
+- **Líneas de referencia**: marcan el cruce de los ejes y el promedio general. Sirven como base de comparación para cada observación.
+- **Colores por clasificación**: asignan una familia visual según elasticidad elástica, unitaria, inelástica o anómala. Aceleran la lectura del tipo de comportamiento.
+- **Etiquetas inteligentes**: ajustan el texto de los cuadrantes según el contexto visible. Mejoran la legibilidad sin recargar la vista.
+- **Tooltips adaptativos**: cambian el nivel de detalle según el filtro activo. Muestran menos o más campos según si se analiza un producto, una categoría o todo el portafolio.
+- **Trazabilidad por producto**: ordena los puntos por fecha cuando se filtra un solo SKU. Permite seguir la evolución temporal del producto dentro del scatter.
+- **Línea de tendencia condicional**: aparece solo cuando hay suficientes puntos y una regresión válida. Resume la dirección general del comportamiento sin competir con la trayectoria histórica.
+- **Interacción con filtros de Power BI**: responde al contexto de segmentadores y filtros cruzados. Permite analizar el mismo visual desde distintas vistas de portafolio.
 
 ---
 
 # 🧾 Indicadores (KPIs)
 
-Además del gráfico principal, el visual presenta indicadores resumidos que permiten obtener una visión general del comportamiento del conjunto de datos.
+Además del gráfico principal, el visual presenta indicadores resumidos en la parte superior que permiten obtener una visión general del comportamiento del conjunto de datos.
 
-Los KPIs muestran:
+## KPIs superiores
 
-- Número total de productos.
-- Elasticidad promedio.
-- Productos elásticos.
-- Productos inelásticos.
-- Variación promedio de precio.
-- Variación promedio de demanda.
+Estos indicadores se calculan automáticamente a partir del último estado visible del filtro y se leen mejor como grupos:
+
+### Portafolio sensible
+
+Mide qué parte del portafolio visible se comporta con elasticidad alta.
+
+- Fórmula: `elastic_sku_count / sku_count`
+- Base de cálculo: `sku_count` = SKUs visibles en el contexto actual y `elastic_sku_count` = SKUs cuyo último punto está clasificado como elástico.
+
+### Riesgo de volumen y captura de valor
+
+Estos dos KPIs muestran la distribución comercial de los SKUs visibles según su último punto en el scatter.
+
+- Riesgo de volumen: `risk_sku_count / sku_count`
+- Captura de valor: `capture_sku_count / sku_count`
+- Base de cálculo: `risk_sku_count` = SKUs cuyo último punto cae en precio al alza y demanda a la baja; `capture_sku_count` = SKUs cuyo último punto cae en precio al alza y demanda al alza.
+
+### Ventas expuestas
+
+Indica qué proporción de los ingresos visibles está asociada a SKUs con riesgo o sensibilidad alta.
+
+- Fórmula: `exposed_ingresos / visible_ingresos`
+- Base de cálculo: `exposed_ingresos` = ingresos de SKUs expuestos a riesgo de volumen o elasticidad alta; `visible_ingresos` = ingresos totales visibles.
+
+### Elasticidad ponderada
+
+Resume la elasticidad del conjunto visible dando más peso a los SKUs con más ingresos.
+
+- Fórmula: `weighted_elasticidad_sum / valid_elasticidad_ingresos_sum`
+- Base de cálculo: `weighted_elasticidad_sum` = suma de elasticidad por ingresos; `valid_elasticidad_ingresos_sum` = ingresos solo de filas con elasticidad válida.
 
 ---
 
