@@ -1,6 +1,6 @@
 # Population Pyramid - Vega Spec for Deneb
 
-![Population Pyramid](https://sentidoanalitica.com/wp-content/uploads/2026/07/population-pyramid.png)
+![Population Pyramid](https://sentidoanalitica.com/wp-content/uploads/2026/07/population-pyramid.gif)
 
 This folder contains Vega specifications designed to be used with Deneb in Power BI:
 
