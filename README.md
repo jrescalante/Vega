@@ -54,12 +54,3 @@ A comparison-focused population pyramid that shows age and sex distribution acro
 
 ---
 
-## Repository Layout
-
-Each visual folder includes:
-
-* The Vega JSON specification
-* A Power BI example file when available
-* A README with details about what the visual does
-
-For the population pyramid, the folder also includes bilingual documentation and two JSON versions: English and Spanish.
