@@ -2,13 +2,17 @@
 
 ![Population Pyramid](https://sentidoanalitica.com/wp-content/uploads/2026/07/population-pyramid.png)
 
-This folder contains a Vega specification designed to be used with Deneb in Power BI:
+This folder contains Vega specifications designed to be used with Deneb in Power BI:
 
 `population-pyramid.json`: Vega specification (English version)
 
+`piramide-poblacional.json`: Vega specification (Spanish version)
+
+`README_ES.md`: Spanish documentation for the same visual
+
 `Population-pyramid-v1.pbix`: Power BI file with the chart rendered in Deneb
 
-This JSON file is a complete, self-contained Vega spec focused on analytical clarity, comparison logic, and practical reporting use.
+These JSON files are complete, self-contained Vega specs focused on analytical clarity, comparison logic, and practical reporting use.
 
 ---
 
@@ -166,11 +170,3 @@ This visual is useful for:
 * Designed for readability and balanced visual comparison rather than decorative styling
 
 ---
-
-## 📌 Author
-
-Jose Rafael Escalante
-
-LinkedIn: https://www.linkedin.com/in/jrescalante/
-
-Email: jrescalante85@gmail.com
