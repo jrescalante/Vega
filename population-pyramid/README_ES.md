@@ -169,11 +169,3 @@ Este visual es útil para:
 * Está diseñado para priorizar legibilidad y comparación equilibrada por encima de un estilo decorativo.
 
 ---
-
-## 📌 Autor
-
-Jose Rafael Escalante
-
-LinkedIn: https://www.linkedin.com/in/jrescalante/
-
-Email: jrescalante85@gmail.com
