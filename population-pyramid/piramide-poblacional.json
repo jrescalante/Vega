@@ -1,0 +1,1070 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
+  "usermeta": {
+    "version": "1.0",
+    "developedBy": "Jose Rafael Escalante",
+    "gitHub": "https://github.com/jrescalante",
+    "linkedIn": "https://www.linkedin.com/in/jrescalante/",
+    "email": "jrescalante@sentidoanalitica.com",
+    "visualName": "Pirámide poblacional",
+    "visualDescription": "Pirámide poblacional con años de referencia históricos (t-10 y t-20) usando año, edad, sexo y personas.",
+    "doc": {
+      "data_stage": [
+        "El conjunto de datos espera año, edad, sexo y personas.",
+        "Sexo usa 1 para masculino y 0 para femenino."
+      ],
+      "layout_signals": [
+        "Signals como centerX, barOffsetPx, plotTopInset y las posiciones KPI controlan la distribución visual.",
+        "La composición mantiene legibles las etiquetas centrales de edad y desplaza las barras para preservar la simetría izquierda/derecha."
+      ],
+      "transform_stage": [
+        "El visual convierte los campos a números y construye totales anuales por edad y sexo.",
+        "Las barras actuales provienen del año visible más reciente; las líneas de referencia históricas se calculan para año-10 y año-20."
+      ],
+      "visual_stage": [
+        "Los valores masculinos se dibujan a la izquierda y los femeninos a la derecha.",
+        "Las líneas de referencia históricas se dibujan lateralmente sobre las barras para facilitar la comparación."
+      ],
+      "tooltip_stage": [
+        "Los tooltips muestran edad, sexo, población, porcentaje del sexo y el contexto del año de comparación.",
+        "La capa de comparación añade la variación relativa para revisar ambos años lado a lado."
+      ],
+      "deneb_usage": [
+        "Vincula los campos año, edad, sexo y personas desde el modelo de Power BI o la tabla ingerida.",
+        "Usa `barOffsetPx` para separar las barras de las etiquetas centrales de edad sin distorsionar sus longitudes."
+      ],
+      "doc_data": {
+        "dataset": "Normaliza los campos base y deriva los totales anuales por edad y sexo.",
+        "year_age_sexo": "Agrupa la entrada por año, edad y sexo después de normalizar el código de sexo a una etiqueta legible.",
+        "year_stats": "Determina los años activos y el año opcional de comparación.",
+        "pyramid": "Construye las barras del año actual y los valores con signo para el renderizado izquierda/derecha.",
+        "pyramid_compare": "Construye las barras del año de comparación cuando se seleccionan dos años.",
+        "pyramid_pct": "Calcula la participación de cada sexo en la vista del año actual.",
+        "pyramid_compare_pct": "Calcula la participación de cada sexo en la vista del año de comparación.",
+        "pyramid_delta": "Calcula diferencias absolutas y relativas contra el año de comparación.",
+        "age_labels": "Genera etiquetas centrales de rangos de edad en bandas de cinco años.",
+        "kpi_totals_current": "Agrega la población total actual.",
+        "kpi_totals_compare": "Agrega la población total de comparación.",
+        "age_delta": "Calcula la variación por banda de edad usada por el KPI resumen.",
+        "top_age_delta": "Encuentra la banda de edad con el cambio absoluto mayor."
+      }
+    }
+  },
+  "description": "Pirámide poblacional con referencias históricas por año para Deneb. Usa año, edad, sexo y personas.",
+  "bounds": "flush",
+  "autosize": {
+    "type": "fit",
+    "contains": "padding",
+    "resize": true
+  },
+  "padding": {
+    "top": 24,
+    "right": 44,
+    "bottom": 24,
+    "left": 44
+  },
+  "background": "#f8f3e8",
+  "signals": [
+    {
+      "name": "centerX",
+      "update": "width / 2"
+    },
+    {
+      "name": "barOffsetPx",
+      "update": "18"
+    },
+    {
+      "name": "plotTopInset",
+      "update": "52"
+    },
+    {
+      "name": "minPctLabel",
+      "update": "0"
+    },
+    {
+      "name": "summaryKpiY",
+      "update": "0"
+    },
+    {
+      "name": "kpiCardY",
+      "update": "20"
+    },
+    {
+      "name": "kpiCardH",
+      "update": "0"
+    },
+    {
+      "name": "kpiCardW",
+      "update": "width * 0.16"
+    },
+    {
+      "name": "kpiRowLeft",
+      "update": "0"
+    },
+    {
+      "name": "kpiRowRight",
+      "update": "width"
+    },
+    {
+      "name": "kpiRowWidth",
+      "update": "kpiRowRight - kpiRowLeft"
+    },
+    {
+      "name": "kpiCol1",
+      "update": "kpiRowLeft + kpiRowWidth * 0.10"
+    },
+    {
+      "name": "kpiCol2",
+      "update": "kpiRowLeft + kpiRowWidth * 0.30"
+    },
+    {
+      "name": "kpiCol3",
+      "update": "kpiRowLeft + kpiRowWidth * 0.50"
+    },
+    {
+      "name": "kpiCol4",
+      "update": "kpiRowLeft + kpiRowWidth * 0.70"
+    },
+    {
+      "name": "kpiCol5",
+      "update": "kpiRowLeft + kpiRowWidth * 0.90"
+    },
+    {
+      "name": "comparisonActive",
+      "update": "data('year_stats').length && data('year_stats')[0].year_count === 2"
+    },
+    {
+      "name": "kpiCurrentTotal",
+      "update": "data('kpi_totals_current').length ? data('kpi_totals_current')[0].current_total : 0"
+    },
+    {
+      "name": "kpiCompareTotal",
+      "update": "data('kpi_totals_compare').length ? data('kpi_totals_compare')[0].compare_total : 0"
+    },
+    {
+      "name": "kpiDiffAbs",
+      "update": "comparisonActive && data('kpi_totals_compare').length ? kpiCurrentTotal - kpiCompareTotal : null"
+    },
+    {
+      "name": "kpiDiffPct",
+      "update": "comparisonActive && data('kpi_totals_compare').length && kpiCompareTotal != 0 ? kpiDiffAbs / kpiCompareTotal : null"
+    },
+    {
+      "name": "kpiCurrentLabel",
+      "update": "format(kpiCurrentTotal, ',.0f')"
+    },
+    {
+      "name": "kpiCompareLabel",
+      "update": "comparisonActive && data('kpi_totals_compare').length ? format(kpiCompareTotal, ',.0f') : '—'"
+    },
+    {
+      "name": "kpiDiffAbsLabel",
+      "update": "comparisonActive && isValid(kpiDiffAbs) ? ((kpiDiffAbs >= 0 ? '+' : '-') + format(abs(kpiDiffAbs), ',.0f')) : '—'"
+    },
+    {
+      "name": "kpiDiffPctLabel",
+      "update": "comparisonActive && isValid(kpiDiffPct) ? ((kpiDiffPct >= 0 ? '+' : '-') + format(abs(kpiDiffPct), '.1%')) : '—'"
+    },
+    {
+      "name": "kpiTopAgeLabel",
+      "update": "comparisonActive && data('top_age_delta').length ? 'Edad ' + data('top_age_delta')[0].age_label : '—'"
+    },
+    {
+      "name": "kpiTopAgeDeltaLabel",
+      "update": "comparisonActive && data('top_age_delta').length ? ((data('top_age_delta')[0].delta_age_total >= 0 ? '+' : '-') + format(abs(data('top_age_delta')[0].delta_age_total), ',.0f')) : '—'"
+    },
+    {
+      "name": "hoveredAge",
+      "value": null,
+      "on": [
+        {
+          "events": "@bars:mouseover",
+          "update": "datum.age_label"
+        },
+        {
+          "events": "@bars:mouseout",
+          "update": "null"
+        }
+      ]
+    }
+  ],
+  "data": [
+    {
+      "name": "dataset",
+      "values": [],
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "isValid(datum['año']) && isValid(datum['edad']) && isValid(datum['sexo']) && isValid(datum['personas'])"
+        },
+        {
+          "type": "formula",
+          "as": "year_num",
+          "expr": "toNumber(datum['año'])"
+        },
+        {
+          "type": "formula",
+          "as": "age_num",
+          "expr": "toNumber(datum['edad'])"
+        },
+        {
+          "type": "formula",
+          "as": "sex_num",
+          "expr": "toNumber(datum['sexo'])"
+        },
+        {
+          "type": "formula",
+          "as": "people_num",
+          "expr": "toNumber(datum['personas'])"
+        },
+        {
+          "type": "filter",
+          "expr": "isValid(datum.year_num) && isValid(datum.age_num) && isValid(datum.sex_num) && isValid(datum.people_num)"
+        }
+      ]
+    },
+    {
+      "name": "year_age_sexo",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "formula",
+          "as": "sexo",
+          "expr": "datum.sex_num === 2 ? 'Femenino' : (datum.sex_num === 1 ? 'Masculino' : (datum.sex_num === 0 ? 'Femenino' : 'Masculino'))"
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["year_num", "age_num", "sexo"],
+          "fields": ["people_num"],
+          "ops": ["sum"],
+          "as": ["people_total_year"]
+        }
+      ]
+    },
+    {
+      "name": "years_ranked",
+      "source": "year_age_sexo",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["year_num"]
+        },
+        {
+          "type": "collect",
+          "sort": {
+            "field": "year_num",
+            "order": "descending"
+          }
+        },
+        {
+          "type": "window",
+          "ops": ["row_number"],
+          "as": ["year_rank"]
+        }
+      ]
+    },
+    {
+      "name": "year_stats",
+      "values": [{}],
+      "transform": [
+        {
+          "type": "formula",
+          "as": "year_count",
+          "expr": "data('years_ranked').length"
+        },
+        {
+          "type": "formula",
+          "as": "max_year",
+          "expr": "data('years_ranked').length ? data('years_ranked')[0].year_num : null"
+        },
+        {
+          "type": "formula",
+          "as": "compare_year",
+          "expr": "data('years_ranked').length === 2 ? data('years_ranked')[1].year_num : null"
+        }
+      ]
+    },
+    {
+      "name": "pyramid",
+      "source": "year_age_sexo",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "data('year_stats').length && (data('year_stats')[0].year_count <= 2 ? datum.year_num === data('year_stats')[0].max_year : true)"
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["age_num", "sexo"],
+          "fields": ["people_total_year"],
+          "ops": ["sum"],
+          "as": ["people_total_mode"]
+        },
+        {
+          "type": "formula",
+          "as": "people_total",
+          "expr": "datum.people_total_mode"
+        },
+        {
+          "type": "formula",
+          "as": "age_label",
+          "expr": "toString(datum.age_num)"
+        },
+        {
+          "type": "formula",
+          "as": "age_sexo_key",
+          "expr": "toString(datum.age_num) + '|' + datum.sexo"
+        },
+        {
+          "type": "formula",
+          "as": "people_signed",
+          "expr": "datum.sexo === 'Masculino' ? -datum.people_total : datum.people_total"
+        },
+        {
+          "type": "formula",
+          "as": "x0",
+          "expr": "min(0, datum.people_signed)"
+        },
+        {
+          "type": "formula",
+          "as": "x1",
+          "expr": "max(0, datum.people_signed)"
+        }
+      ]
+    },
+    {
+      "name": "pyramid_compare",
+      "source": "year_age_sexo",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "data('year_stats').length && data('year_stats')[0].year_count === 2 && isValid(data('year_stats')[0].compare_year) && datum.year_num === data('year_stats')[0].compare_year"
+        },
+        {
+          "type": "formula",
+          "as": "people_total_compare",
+          "expr": "datum.people_total_year"
+        },
+        {
+          "type": "formula",
+          "as": "age_label",
+          "expr": "toString(datum.age_num)"
+        },
+        {
+          "type": "formula",
+          "as": "age_sexo_key",
+          "expr": "toString(datum.age_num) + '|' + datum.sexo"
+        },
+        {
+          "type": "formula",
+          "as": "people_signed",
+          "expr": "datum.sexo === 'Masculino' ? -datum.people_total_compare : datum.people_total_compare"
+        },
+        {
+          "type": "formula",
+          "as": "x0",
+          "expr": "min(0, datum.people_signed)"
+        },
+        {
+          "type": "formula",
+          "as": "x1",
+          "expr": "max(0, datum.people_signed)"
+        }
+      ]
+    },
+    {
+      "name": "sexo_totals_current",
+      "source": "pyramid",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["sexo"],
+          "fields": ["people_total"],
+          "ops": ["sum"],
+          "as": ["sexo_total"]
+        }
+      ]
+    },
+    {
+      "name": "sexo_totals_compare",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["sexo"],
+          "fields": ["people_total_compare"],
+          "ops": ["sum"],
+          "as": ["sexo_total_compare"]
+        }
+      ]
+    },
+    {
+      "name": "pyramid_pct",
+      "source": "pyramid",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "sexo_totals_current",
+          "key": "sexo",
+          "fields": ["sexo"],
+          "values": ["sexo_total"],
+          "as": ["sexo_total"]
+        },
+        {
+          "type": "formula",
+          "as": "pct_sexo",
+          "expr": "isValid(datum.sexo_total) && datum.sexo_total > 0 ? datum.people_total / datum.sexo_total : 0"
+        },
+        {
+          "type": "formula",
+          "as": "pct_label",
+          "expr": "format(datum.pct_sexo, '.2%')"
+        }
+      ]
+    },
+    {
+      "name": "pyramid_compare_pct",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "sexo_totals_compare",
+          "key": "sexo",
+          "fields": ["sexo"],
+          "values": ["sexo_total_compare"],
+          "as": ["sexo_total_compare"]
+        },
+        {
+          "type": "formula",
+          "as": "pct_sexo_compare",
+          "expr": "isValid(datum.sexo_total_compare) && datum.sexo_total_compare > 0 ? datum.people_total_compare / datum.sexo_total_compare : 0"
+        },
+        {
+          "type": "formula",
+          "as": "pct_label_compare",
+          "expr": "format(datum.pct_sexo_compare, '.2%')"
+        }
+      ]
+    },
+    {
+      "name": "pyramid_delta",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "pyramid",
+          "key": "age_sexo_key",
+          "fields": ["age_sexo_key"],
+          "values": ["people_total", "x0", "x1"],
+          "as": ["people_total_current", "current_x0", "current_x1"]
+        },
+        {
+          "type": "formula",
+          "as": "delta_people",
+          "expr": "isValid(datum.people_total_current) ? datum.people_total_current - datum.people_total_compare : null"
+        },
+        {
+          "type": "formula",
+          "as": "delta_pct",
+          "expr": "isValid(datum.people_total_compare) && datum.people_total_compare != 0 && isValid(datum.delta_people) ? datum.delta_people / datum.people_total_compare : null"
+        },
+        {
+          "type": "formula",
+          "as": "delta_label",
+          "expr": "isValid(datum.delta_pct) ? ((datum.delta_pct >= 0 ? '+' : '-') + format(abs(datum.delta_pct), '.1%')) : '—'"
+        }
+      ]
+    },
+    {
+      "name": "age_labels",
+      "source": "pyramid_pct",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["age_num", "age_label"]
+        },
+        {
+          "type": "formula",
+          "as": "age_range_label",
+          "expr": "toString(datum.age_num) + '-' + toString(datum.age_num + 4)"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.age_num % 5 === 0"
+        }
+      ]
+    },
+    {
+      "name": "y_domain_sorted",
+      "source": "pyramid_pct",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["age_num", "age_label"]
+        },
+        {
+          "type": "collect",
+          "sort": {
+            "field": "age_num",
+            "order": "ascending"
+          }
+        }
+      ]
+    },
+    {
+      "name": "x_base_stats",
+      "source": "pyramid",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["people_signed", "people_signed"],
+          "ops": ["min", "max"],
+          "as": ["min_signed", "max_signed"]
+        }
+      ]
+    },
+    {
+      "name": "x_compare_stats",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["people_signed", "people_signed"],
+          "ops": ["min", "max"],
+          "as": ["min_signed", "max_signed"]
+        }
+      ]
+    },
+    {
+      "name": "x_stats",
+      "values": [{}],
+      "transform": [
+        {
+          "type": "formula",
+          "as": "min_signed",
+          "expr": "data('x_base_stats').length ? (data('x_compare_stats').length ? min(data('x_base_stats')[0].min_signed, data('x_compare_stats')[0].min_signed) : data('x_base_stats')[0].min_signed) : 0"
+        },
+        {
+          "type": "formula",
+          "as": "max_signed",
+          "expr": "data('x_base_stats').length ? (data('x_compare_stats').length ? max(data('x_base_stats')[0].max_signed, data('x_compare_stats')[0].max_signed) : data('x_base_stats')[0].max_signed) : 0"
+        },
+        {
+          "type": "formula",
+          "as": "max_abs",
+          "expr": "max(abs(datum.min_signed), abs(datum.max_signed))"
+        }
+      ]
+    },
+    {
+      "name": "kpi_totals_current",
+      "source": "pyramid",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["people_total"],
+          "ops": ["sum"],
+          "as": ["current_total"]
+        }
+      ]
+    },
+    {
+      "name": "kpi_totals_compare",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "aggregate",
+          "fields": ["people_total_compare"],
+          "ops": ["sum"],
+          "as": ["compare_total"]
+        }
+      ]
+    },
+    {
+      "name": "current_age_totals",
+      "source": "pyramid",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["age_num", "age_label"],
+          "fields": ["people_total"],
+          "ops": ["sum"],
+          "as": ["current_age_total"]
+        }
+      ]
+    },
+    {
+      "name": "compare_age_totals",
+      "source": "pyramid_compare",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["age_num", "age_label"],
+          "fields": ["people_total_compare"],
+          "ops": ["sum"],
+          "as": ["compare_age_total"]
+        }
+      ]
+    },
+    {
+      "name": "age_delta",
+      "source": "current_age_totals",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "compare_age_totals",
+          "key": "age_num",
+          "fields": ["age_num"],
+          "values": ["compare_age_total"],
+          "as": ["compare_age_total"]
+        },
+        {
+          "type": "formula",
+          "as": "delta_age_total",
+          "expr": "isValid(datum.compare_age_total) ? datum.current_age_total - datum.compare_age_total : null"
+        },
+        {
+          "type": "formula",
+          "as": "abs_delta_age_total",
+          "expr": "isValid(datum.delta_age_total) ? abs(datum.delta_age_total) : null"
+        }
+      ]
+    },
+    {
+      "name": "top_age_delta",
+      "source": "age_delta",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "comparisonActive && isValid(datum.abs_delta_age_total)"
+        },
+        {
+          "type": "collect",
+          "sort": {
+            "field": "abs_delta_age_total",
+            "order": "descending"
+          }
+        },
+        {
+          "type": "window",
+          "ops": ["row_number"],
+          "as": ["delta_rank"]
+        },
+        {
+          "type": "filter",
+          "expr": "datum.delta_rank == 1"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": [
+        {
+          "signal": "-1 * (data('x_stats').length ? data('x_stats')[0].max_abs : 0)"
+        },
+        {
+          "signal": "data('x_stats').length ? data('x_stats')[0].max_abs : 0"
+        }
+      ],
+      "range": "width",
+      "nice": true,
+      "zero": true
+    },
+    {
+      "name": "y",
+      "type": "band",
+      "domain": {
+        "data": "y_domain_sorted",
+        "field": "age_label"
+      },
+      "range": [
+        {
+          "signal": "height"
+        },
+        {
+          "signal": "plotTopInset"
+        }
+      ],
+      "padding": 0.15
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": ["Masculino", "Femenino"],
+      "range": ["#6F8FAF", "#D88FA3"]
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "x",
+      "title": "Población",
+      "format": "~s",
+      "tickCount": 6,
+      "grid": false,
+      "gridColor": "#e5e7eb",
+      "tickColor": "#cbd5e1",
+      "domainColor": "#94a3b8",
+      "encode": {
+        "labels": {
+          "update": {
+            "text": {
+              "signal": "format(abs(datum.value), '~s')"
+            }
+          }
+        }
+      }
+    },
+    {
+      "orient": "left",
+      "scale": "y",
+      "title": "",
+      "labels": false,
+      "tickSize": 0,
+      "domain": false,
+      "ticks": false,
+      "grid": false
+    }
+  ],
+  "legends": [],
+  "marks": [
+    {
+      "type": "text",
+      "name": "label_compare_status",
+      "zindex": 6,
+      "encode": {
+        "update": {
+          "x": { "signal": "centerX" },
+          "y": { "signal": "summaryKpiY" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "text": {
+            "signal": "data('year_stats').length ? (data('year_stats')[0].year_count === 2 && isValid(data('year_stats')[0].compare_year) ? 'Comparación: ' + data('year_stats')[0].compare_year + ' vs ' + data('year_stats')[0].max_year : (data('year_stats')[0].year_count === 1 ? 'Año ' + data('year_stats')[0].max_year : ('Años: ' + join(pluck(data('years_ranked'), 'year_num'), ', ')))) : 'Años: Total'"
+          },
+          "fill": { "value": "#334155" },
+          "fontSize": { "value": 11.5 },
+          "fontWeight": { "value": 600 },
+          "letterSpacing": { "value": 0.2 },
+          "opacity": { "value": 0.95 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol1" },
+          "y": { "signal": "kpiCardY - 2" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "lineHeight": { "value": 14 },
+          "fill": { "value": "#475467" },
+          "text": { "value": "Poblacion actual" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol1" },
+          "y": { "signal": "kpiCardY + 12" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#1f2937" },
+          "text": { "signal": "kpiCurrentLabel" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol2" },
+          "y": { "signal": "kpiCardY - 2" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "lineHeight": { "value": 14 },
+          "fill": { "value": "#475467" },
+          "text": { "value": "Poblacion comparada" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol2" },
+          "y": { "signal": "kpiCardY + 12" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "value": "#1f2937" },
+          "text": { "signal": "kpiCompareLabel" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol3" },
+          "y": { "signal": "kpiCardY - 2" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "lineHeight": { "value": 14 },
+          "fill": { "signal": "comparisonActive && isValid(kpiDiffAbs) ? (kpiDiffAbs >= 0 ? '#3f6f95' : '#a93f4b') : '#475467'" },
+          "text": { "value": "Variacion absoluta" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol3" },
+          "y": { "signal": "kpiCardY + 12" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "signal": "comparisonActive && isValid(kpiDiffAbs) ? (kpiDiffAbs >= 0 ? '#1d4e89' : '#7a2030') : '#1f2937'" },
+          "text": { "signal": "kpiDiffAbsLabel" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol4" },
+          "y": { "signal": "kpiCardY - 2" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "lineHeight": { "value": 14 },
+          "fill": { "signal": "comparisonActive && isValid(kpiDiffPct) ? (kpiDiffPct >= 0 ? '#3f6f95' : '#a93f4b') : '#475467'" },
+          "text": { "value": "Variacion relativa" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol4" },
+          "y": { "signal": "kpiCardY + 12" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "signal": "comparisonActive && isValid(kpiDiffPct) ? (kpiDiffPct >= 0 ? '#1d4e89' : '#7a2030') : '#1f2937'" },
+          "text": { "signal": "kpiDiffPctLabel" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol5" },
+          "y": { "signal": "kpiCardY - 2" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift SemiBold" },
+          "fontSize": { "value": 9.5 },
+          "lineHeight": { "value": 14 },
+          "fill": { "signal": "comparisonActive && data('top_age_delta').length ? (data('top_age_delta')[0].delta_age_total >= 0 ? '#3f6f95' : '#a93f4b') : '#475467'" },
+          "text": { "value": "Mayor cambio etario" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "update": {
+          "x": { "signal": "kpiCol5" },
+          "y": { "signal": "kpiCardY + 12" },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "font": { "value": "Bahnschrift" },
+          "fontSize": { "value": 10.5 },
+          "fill": { "signal": "comparisonActive && data('top_age_delta').length ? (data('top_age_delta')[0].delta_age_total >= 0 ? '#1d4e89' : '#7a2030') : '#1f2937'" },
+          "text": { "signal": "comparisonActive && data('top_age_delta').length ? (kpiTopAgeLabel + ' (' + kpiTopAgeDeltaLabel + ')') : '—'" }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "name": "bars",
+      "from": { "data": "pyramid_pct" },
+      "encode": {
+        "update": {
+          "y": { "scale": "y", "field": "age_label" },
+          "height": { "scale": "y", "band": 0.92 },
+          "x": { "signal": "datum.sexo === 'Masculino' ? scale('x', datum.x0) - barOffsetPx : scale('x', datum.x0) + barOffsetPx" },
+          "x2": { "signal": "datum.sexo === 'Masculino' ? scale('x', datum.x1) - barOffsetPx : scale('x', datum.x1) + barOffsetPx" },
+          "fill": { "scale": "color", "field": "sexo" },
+          "stroke": { "signal": "hoveredAge && datum.age_label === hoveredAge ? '#0F172A' : 'white'" },
+          "strokeWidth": { "signal": "hoveredAge && datum.age_label === hoveredAge ? 1.2 : 0.5" },
+          "opacity": { "value": 1 },
+          "tooltip": {
+            "signal": "{'Edad': datum.age_num, 'Sexo': datum.sexo, 'Poblacion': format(datum.people_total, ',.0f'), '% del sexo': datum.pct_label, 'Año': data('year_stats').length ? (data('year_stats')[0].year_count === 1 ? data('year_stats')[0].max_year : (data('year_stats')[0].year_count === 2 ? data('year_stats')[0].max_year : 'Total')) : null}"
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "name": "bars_compare",
+      "from": { "data": "pyramid_delta" },
+      "encode": {
+        "update": {
+          "y": { "signal": "scale('y', datum.age_label) + (bandwidth('y') * 0.2)" },
+          "height": { "scale": "y", "band": 0.5 },
+          "x": { "signal": "datum.sexo === 'Masculino' ? scale('x', datum.x0) - barOffsetPx : scale('x', datum.x0) + barOffsetPx" },
+          "x2": { "signal": "datum.sexo === 'Masculino' ? scale('x', datum.x1) - barOffsetPx : scale('x', datum.x1) + barOffsetPx" },
+          "fill": { "signal": "datum.sexo === 'Masculino' ? '#1d4e89' : '#a53a63'" },
+          "stroke": { "value": "#f8f3e8" },
+          "strokeWidth": { "value": 0.8 },
+          "opacity": { "value": 0.72 },
+          "tooltip": {
+            "signal": "{'Edad': datum.age_num, 'Sexo': datum.sexo, 'Poblacion (año comparación)': format(datum.people_total_compare, ',.0f'), 'Variacion relativa': datum.delta_label, 'Año comparación': data('year_stats').length ? data('year_stats')[0].compare_year : null}"
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "pyramid_pct" },
+      "zindex": 4,
+      "encode": {
+        "update": {
+          "x": {
+            "signal": "datum.sexo === 'Masculino' ? scale('x', datum.x0) - barOffsetPx - 6 : scale('x', datum.x1) + barOffsetPx + 6"
+          },
+          "y": { "scale": "y", "field": "age_label", "band": 0.46 },
+          "align": { "signal": "datum.sexo === 'Masculino' ? 'right' : 'left'" },
+          "baseline": { "value": "middle" },
+          "text": { "field": "pct_label" },
+          "fill": { "signal": "hoveredAge && datum.age_label === hoveredAge ? '#0F172A' : '#334155'" },
+          "fontWeight": { "value": 600 },
+          "fontSize": { "value": 9 },
+          "opacity": { "signal": "comparisonActive ? 0 : (datum.pct_sexo >= minPctLabel ? 0.95 : 0)" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "pyramid_delta" },
+      "zindex": 4,
+      "encode": {
+        "update": {
+          "x": {
+            "signal": "datum.sexo === 'Masculino' ? scale('x', (isValid(datum.delta_people) && datum.delta_people >= 0 ? datum.current_x0 : datum.x0)) - barOffsetPx - 6 : scale('x', (isValid(datum.delta_people) && datum.delta_people >= 0 ? datum.current_x1 : datum.x1)) + barOffsetPx + 6"
+          },
+          "y": { "scale": "y", "field": "age_label", "band": 0.46 },
+          "align": { "signal": "datum.sexo === 'Masculino' ? 'right' : 'left'" },
+          "baseline": { "value": "middle" },
+          "text": { "field": "delta_label" },
+          "fill": { "value": "#475467" },
+          "fontWeight": { "value": 600 },
+          "fontSize": { "value": 9 },
+          "opacity": { "signal": "comparisonActive && isValid(datum.delta_people) ? 0.95 : 0" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "age_labels" },
+      "encode": {
+        "update": {
+          "x": { "signal": "centerX" },
+          "y": { "scale": "y", "field": "age_label", "band": 0.5 },
+          "align": { "value": "center" },
+          "baseline": { "value": "middle" },
+          "fill": { "value": "#4b5563" },
+          "fontSize": { "value": 10 },
+          "fontWeight": { "value": 400 },
+          "text": { "field": "age_range_label" }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "name": "label_masculino",
+      "zindex": 5,
+      "encode": {
+        "update": {
+          "x": { "signal": "width * 0.25" },
+          "y": { "value": 52 },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "text": { "value": "Masculino" },
+          "fill": { "value": "#334155" },
+          "fontSize": { "value": 10 },
+          "fontWeight": { "value": 600 },
+          "letterSpacing": { "value": 0.3 },
+          "opacity": { "value": 0.9 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "name": "label_femenino",
+      "zindex": 5,
+      "encode": {
+        "update": {
+          "x": { "signal": "width * 0.75" },
+          "y": { "value": 52 },
+          "align": { "value": "center" },
+          "baseline": { "value": "top" },
+          "text": { "value": "Femenino" },
+          "fill": { "value": "#334155" },
+          "fontSize": { "value": 10 },
+          "fontWeight": { "value": 600 },
+          "letterSpacing": { "value": 0.3 },
+          "opacity": { "value": 0.9 }
+        }
+      }
+    }
+  ],
+  "config": {
+    "background": "#f8f3e8",
+    "numberFormatLocale": {
+      "decimal": ",",
+      "thousands": ".",
+      "grouping": [3],
+      "currency": ["", ""],
+      "percent": "%"
+    },
+    "view": {
+      "stroke": null
+    },
+    "axis": {
+      "labelFont": "Bahnschrift",
+      "titleFont": "Bahnschrift SemiBold",
+      "labelColor": "#4b5563",
+      "titleColor": "#374151"
+    },
+    "legend": {
+      "labelFont": "Bahnschrift",
+      "titleFont": "Bahnschrift SemiBold"
+    },
+    "text": {
+      "font": "Bahnschrift"
+    }
+  }
+}
