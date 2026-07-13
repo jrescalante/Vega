@@ -1,6 +1,6 @@
 # Vega Visuals Catalog
 
-This folder brings together a set of custom visuals built in Vega for Deneb in Power BI. It serves as a lightweight entry point: each visual has its own folder with full documentation, data requirements, and the corresponding JSON spec.
+This folder brings together a set of custom visuals built in Vega for Deneb in Power BI. Each visual was created from prompts using different models and refined through multiple iterations to better match the expected behavior. It serves as a lightweight entry point: each visual has its own folder with full documentation, data requirements, and the corresponding JSON spec.
 
 ---
 
