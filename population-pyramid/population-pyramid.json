@@ -700,7 +700,7 @@
     {
       "orient": "bottom",
       "scale": "x",
-      "title": "Población",
+      "title": "Population",
       "format": "~s",
       "tickCount": 6,
       "grid": false,
