@@ -1,6 +1,6 @@
 # Pirámide poblacional - Especificación Vega para Deneb
 
-![Pirámide poblacional](https://sentidoanalitica.com/wp-content/uploads/2026/07/population-pyramid.png)
+![Pirámide poblacional](https://sentidoanalitica.com/wp-content/uploads/2026/07/population-pyramid.gif)
 
 Esta carpeta contiene especificaciones Vega diseñadas para usarse con Deneb en Power BI:
 
