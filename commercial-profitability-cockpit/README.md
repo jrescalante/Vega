@@ -72,15 +72,15 @@ The visual works with a fact table at SKU-period grain and a margin target table
 | Field | Type | Description |
 |--------|------|-------------|
 | Product | Text | Descriptive product name. |
-| Category | Text | Commercial product category. |
-| Channel | Text | Sales channel. |
+| **Category** | Text | Commercial product category. Recommended for slicing the portfolio and improving tooltip context. |
+| **Channel** | Text | Sales channel. Recommended for analyzing margin pressure by route-to-market or commercial channel. |
 | Unit_Price | Numeric | Unit selling price. |
-| Year | Numeric | Calendar year. |
-| QuarterNo | Numeric | Quarter number. |
+| Year | Numeric | Calendar year used, together with `QuarterNo`, to build `QuarterKey`. |
+| QuarterNo | Numeric | Quarter number used, together with `Year`, to build `QuarterKey`. |
 | Quarter | Text | Quarter label, for example `Q1`. |
 | QuarterKey | Text | Year-quarter key, for example `2024Q1`. |
 
-> ℹ️ `Product` and `Category` are optional for the visual to work, but they enrich tooltips, context, and commercial interpretation.
+> ℹ️ `Product`, `Category`, and `Channel` are optional for the visual to work, but `Category` and `Channel` are especially useful for slicing profitability patterns. `QuarterKey` is derived from `Year` and `QuarterNo`, then combined with `SKU` to create `SKUQuarterKey`.
 
 ## Margin target table
 
@@ -111,6 +111,8 @@ Unlike visuals that calculate everything directly in Vega, this visual uses two 
 
 ## SKU target margin
 
+Returns the target margin for the current SKU-quarter by looking up the current `SKUQuarterKey` in `Margin Targets`.
+
 ```DAX
 SKU Target Margin =
 VAR CurrentSKUQuarterKey =
@@ -123,6 +125,8 @@ RETURN
 ```
 
 ## Context target margin
+
+Calculates the revenue-weighted target margin for all SKU-quarters visible in the current filter context.
 
 ```DAX
 Context Target Margin =
