@@ -14,6 +14,16 @@ An analytical scatter visual for price elasticity of demand. It calculates elast
 
 ---
 
+## Commercial Profitability Cockpit
+
+![Commercial Profitability Cockpit](https://sentidoanalitica.com/wp-content/uploads/2026/07/commercial-profitability-cockpit.gif)
+
+A profitability scatter cockpit for tracking revenue growth against SKU-quarter margin targets. It classifies each SKU into commercial quadrants, highlights margin risk and exposed revenue, and summarizes the visible portfolio with profitability KPIs.
+
+[Open folder](commercial-profitability-cockpit/README.md)
+
+---
+
 ## EWMA Control Chart
 
 ![EWMA Control Chart](https://sentidoanalitica.com/wp-content/uploads/2026/01/EWMA-Control-Chart-Params-v1.gif)
