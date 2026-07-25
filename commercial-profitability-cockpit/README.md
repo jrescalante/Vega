@@ -1,5 +1,7 @@
 # Commercial Profitability Cockpit - Vega Spec for Deneb
 
+![Commercial Profitability Cockpit](https://sentidoanalitica.com/wp-content/uploads/2026/07/commercial-profitability-cockpit.gif)
+
 ## 📌 Description
 
 This project implements a custom **Power BI** visual using **Deneb (Vega)** to analyze commercial profitability against SKU-quarter margin targets.
