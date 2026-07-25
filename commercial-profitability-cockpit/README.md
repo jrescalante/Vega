@@ -12,6 +12,15 @@ The current version goes beyond a traditional scatter plot: it compares revenue 
 
 # 🎯 What does this visual do?
 
+This visual is built around a simple but critical commercial question:
+
+How can we see, in one view, which products are growing profitably and which ones are growing only because margin is being sacrificed?
+
+It is more than a scatter plot.
+In a single view, it shows how each SKU is growing, how far it is from its margin target, and where the business is exposed.
+
+Because of that, the conversation changes from "Are we selling more?" to "Are we selling better?"
+
 The visual allows you to:
 
 - Compare each SKU's revenue growth against its first visible period.
