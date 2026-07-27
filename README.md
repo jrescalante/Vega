@@ -4,7 +4,7 @@ This folder brings together a set of custom visuals built in Vega for Deneb in P
 
 ---
 
-## Elasticidad Precio Demanda
+## Price Elasticity of Demand
 
 ![Elasticidad Precio-Demanda](https://sentidoanalitica.com/wp-content/uploads/2026/06/elasticidad-precio-demanda-v2.gif)
 
