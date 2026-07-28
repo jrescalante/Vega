@@ -1,4 +1,4 @@
-# Panel de Rentabilidad Comercial - Especificación Vega para Deneb
+# Panel de Rentabilidad Comercial - Vega Spec para Deneb
 
 ![Panel de Rentabilidad Comercial](https://sentidoanalitica.com/wp-content/uploads/2026/07/commercial-profitability-cockpit.gif)
 
