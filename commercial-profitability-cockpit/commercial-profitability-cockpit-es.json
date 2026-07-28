@@ -6,50 +6,60 @@
     "gitHub": "https://github.com/jrescalante",
     "linkedIn": "https://www.linkedin.com/in/jrescalante/",
     "email": "jrescalante@sentidoanalitica.com",
-    "visualName": "Commercial Profitability Cockpit",
-    "visualDescription": "Commercial profitability scatter with revenue growth, gross margin, target margin quadrants and KPI context; Deneb-ready.",
+    "visualName": "Panel de Rentabilidad Comercial",
+    "visualDescription": "Dispersión de rentabilidad comercial con crecimiento de ingresos, margen bruto, cuadrantes de margen objetivo y contexto KPI; listo para Deneb.",
     "doc": {
       "data_stage": [
-        "Dataset expects Date, SKU, Revenue, Units_Sold, Unit_Cost, SKU Target Margin and Context Target Margin; Product and Category are optional.",
-        "Validates date, SKU, revenue, unit, cost and target margin fields, then derives gross margin and revenue growth metrics by SKU."
+        "El conjunto de datos espera Fecha, SKU, Ingresos, Unidades_Vendidas, Costo_Unitario, Margen Objetivo SKU y Margen Objetivo Contexto; Producto y Categoría son opcionales.",
+        "Valida los campos de fecha, SKU, ingresos, unidades, costo y margen objetivo; luego calcula el margen bruto y las métricas de crecimiento de ingresos por SKU."
       ],
       "layout_signals": [
-        "Signals container/viewW/viewH control responsive sizing; plotTop/plotBottom define the bounded scatter region.",
-        "KPI column signals align the header metrics consistently with the EPD-style visual language."
+        "Las señales container/viewW/viewH controlan el tamaño responsivo; plotTop/plotBottom definen la región acotada de dispersión.",
+        "Las señales de columnas KPI alinean las métricas de cabecera de manera consistente con el lenguaje visual EPD."
       ],
       "transform_stage": [
-        "Computes latest visible SKU points, revenue growth versus the first visible period, and fallback growth versus portfolio mean.",
-        "Aggregates visible SKU counts, profitable/critical mix, exposed revenue percentage and weighted gross margin for KPI context."
+        "Calcula los últimos puntos visibles por SKU, el crecimiento de ingresos frente al primer período visible y el crecimiento alternativo frente al promedio del portafolio.",
+        "Agrega el número de SKU visibles, la mezcla rentable/crítica, el porcentaje de ingresos expuestos y el margen bruto ponderado para los KPI."
       ],
       "visual_stage": [
-        "Main scatter: X = revenue growth versus first visible period, Y = gross margin gap versus SKU-quarter target.",
-        "Points are classified by zero revenue growth and their own SKU target margin; reference rules show the zero-growth line and target baseline.",
-        "Subtle axis guide labels explain revenue pressure/growth momentum and above/below-target margin performance."
+        "Dispersión principal: X = crecimiento de ingresos frente al primer período visible, Y = brecha de margen bruto frente al objetivo trimestral por SKU.",
+        "Los puntos se clasifican por crecimiento cero de ingresos y su propio margen objetivo por SKU; las líneas de referencia muestran el crecimiento cero y la línea base del objetivo.",
+        "Las etiquetas guía de los ejes explican la presión de ingresos, el impulso de crecimiento y el desempeño de margen por encima o debajo del objetivo."
       ],
       "tooltip_stage": [
-        "Point tooltips show the period, SKU, optional product/category when bound, quadrant, revenue growth, gross margin, SKU target margin, margin gap, reference target margin and revenue."
+        "Los tooltips muestran el período, SKU, producto/categoría opcionales cuando están vinculados, cuadrante, crecimiento de ingresos, margen bruto, margen objetivo por SKU, brecha de margen, margen objetivo de referencia e ingresos."
       ],
       "deneb_usage": [
-        "Paste the spec into Deneb and bind the required model fields, including SKU Target Margin as the point-level target measure and Context Target Margin as the weighted target measure for the current filter context.",
-        "Do not replace dataset.values with a local URL; Power BI/Deneb provides the bound dataset."
+        "Pegue la especificación en Deneb y vincule los campos requeridos del modelo, incluido Margen Objetivo SKU como medida de objetivo por punto y Margen Objetivo Contexto como medida de objetivo ponderado para el contexto de filtro actual.",
+        "No reemplace dataset.values con una URL local; Power BI/Deneb proporciona el conjunto de datos vinculado."
       ],
       "doc_data": {
-        "dataset": "Normalizes model fields, validates input rows and derives gross margin plus growth metrics.",
-        "specs": "Reads the required target margin from bound data for the reference line and quadrant split.",
-        "latest_points": "Keeps the latest visible row per SKU and derives profitability exposure flags for plotting and KPIs.",
-        "kpi_stats": "Aggregates visible portfolio metrics used by the header KPIs.",
-        "active_categories": "Counts visible categories in the current filter context.",
-        "active_products": "Counts visible product/category combinations in the current filter context."
+        "dataset": "Normaliza los campos del modelo, valida las filas de entrada y calcula el margen bruto y las métricas de crecimiento.",
+        "specs": "Lee el margen objetivo requerido de los datos vinculados para la línea de referencia y la división de cuadrantes.",
+        "latest_points": "Conserva la última fila visible por SKU y calcula indicadores de exposición de rentabilidad para el gráfico y los KPI.",
+        "kpi_stats": "Agrega las métricas del portafolio visible utilizadas por los KPI de cabecera.",
+        "active_categories": "Cuenta las categorías visibles en el contexto de filtro actual.",
+        "active_products": "Cuenta las combinaciones visibles de producto/categoría en el contexto de filtro actual."
       }
     }
   },
-  "description": "Commercial Profitability Cockpit base. Uses Date, SKU, Revenue, Units_Sold, Unit_Cost, SKU Target Margin and Context Target Margin; Product and Category are optional. Y-axis shows margin gap versus SKU-quarter target.",
+  "description": "Panel de rentabilidad comercial. Usa Fecha, SKU, Ingresos, Unidades_Vendidas, Costo_Unitario, Margen Objetivo SKU y Margen Objetivo Contexto; Producto y Categoría son opcionales. El eje Y muestra la brecha de margen frente al objetivo trimestral por SKU.",
   "bounds": "flush",
   "autosize": { "type": "fit", "contains": "padding", "resize": true },
   "padding": { "top": 18, "right": 28, "bottom": 44, "left": 42 },
   "width": { "signal": "viewW" },
   "height": { "signal": "viewH" },
   "background": "white",
+  "config": {
+    "locale": {
+      "number": {
+        "decimal": ",",
+        "thousands": ".",
+        "grouping": [3],
+        "currency": ["", ""]
+      }
+    }
+  },
   "signals": [
     { "name": "container", "update": "containerSize()" },
     { "name": "viewW", "update": "container[0]" },
@@ -61,11 +71,11 @@
     { "name": "kpiRowLeft", "update": "-64" },
     { "name": "kpiRowRight", "update": "width + 84" },
     { "name": "kpiRowWidth", "update": "kpiRowRight - kpiRowLeft" },
-    { "name": "kpiCol1", "update": "kpiRowLeft + kpiRowWidth * 0.09" },
-    { "name": "kpiCol2", "update": "kpiRowLeft + kpiRowWidth * 0.28" },
-    { "name": "kpiCol3", "update": "kpiRowLeft + kpiRowWidth * 0.47" },
-    { "name": "kpiCol4", "update": "kpiRowLeft + kpiRowWidth * 0.66" },
-    { "name": "kpiCol5", "update": "kpiRowLeft + kpiRowWidth * 0.88" },
+    { "name": "kpiCol1", "update": "kpiRowLeft + kpiRowWidth * 0.10" },
+    { "name": "kpiCol2", "update": "kpiRowLeft + kpiRowWidth * 0.30" },
+    { "name": "kpiCol3", "update": "kpiRowLeft + kpiRowWidth * 0.50" },
+    { "name": "kpiCol4", "update": "kpiRowLeft + kpiRowWidth * 0.70" },
+    { "name": "kpiCol5", "update": "kpiRowLeft + kpiRowWidth * 0.90" },
     { "name": "summaryCenterX", "update": "width * 0.5" },
     { "name": "summaryContextY", "value": 2 },
     { "name": "summaryKpiY", "value": 20 },
@@ -77,7 +87,7 @@
     { "name": "activeCategoryCount", "update": "data('active_categories').length" },
     { "name": "activeProductCount", "update": "data('active_products').length" },
     { "name": "categorySelectionLabel", "update": "join(pluck(data('active_categories'), 'category'), ', ')" },
-    { "name": "contextLabel", "update": "(activeCategoryCount === totalCategoryCount ? 'View: ' + format(totalCategoryCount, ',.0f') + ' categories' : activeCategoryCount > 0 ? 'View: ' + categorySelectionLabel : 'View: ' + format(totalCategoryCount, ',.0f') + ' categories') + ' | ' + format(activeProductCount, ',.0f') + ' products'" },
+    { "name": "contextLabel", "update": "(activeCategoryCount === totalCategoryCount ? 'Vista: ' + format(totalCategoryCount, ',.0f') + ' categorías' : activeCategoryCount > 0 ? 'Vista: ' + categorySelectionLabel : 'Vista: ' + format(totalCategoryCount, ',.0f') + ' categorías') + ' | ' + format(activeProductCount, ',.0f') + ' productos'" },
     { "name": "hoveredPointQuadrant", "value": null, "on": [ { "events": "@scatter-points:mouseover", "update": "datum.quadrant" }, { "events": "@scatter-points:mouseout", "update": "null" } ] }
   ],
   "data": [
@@ -85,19 +95,19 @@
       "name": "dataset",
       "values": [],
       "transform": [
-        { "type": "formula", "as": "date_value", "expr": "isDate(datum.Date) ? datum.Date : toDate(datum.Date)" },
+        { "type": "formula", "as": "date_value", "expr": "isDate(datum.Fecha) ? datum.Fecha : toDate(datum.Fecha)" },
         { "type": "formula", "as": "sku_key", "expr": "toString(datum.SKU)" },
-        { "type": "formula", "as": "has_product", "expr": "isValid(datum.Product)" },
-        { "type": "formula", "as": "product", "expr": "isValid(datum.Product) ? toString(datum.Product) : toString(datum.SKU)" },
+        { "type": "formula", "as": "has_product", "expr": "isValid(datum.Producto)" },
+        { "type": "formula", "as": "product", "expr": "isValid(datum.Producto) ? toString(datum.Producto) : toString(datum.SKU)" },
         { "type": "formula", "as": "product_label", "expr": "datum.product === datum.sku_key ? datum.sku_key : datum.product + ' | ' + datum.sku_key" },
-        { "type": "formula", "as": "has_category", "expr": "isValid(datum.Category)" },
-        { "type": "formula", "as": "category", "expr": "isValid(datum.Category) ? toString(datum.Category) : null" },
+        { "type": "formula", "as": "has_category", "expr": "isValid(datum.Categoría)" },
+        { "type": "formula", "as": "category", "expr": "isValid(datum.Categoría) ? toString(datum.Categoría) : null" },
         { "type": "formula", "as": "category_label", "expr": "isValid(datum.category) ? datum.category : null" },
-        { "type": "formula", "as": "revenue", "expr": "toNumber(datum.Revenue)" },
-        { "type": "formula", "as": "units", "expr": "toNumber(datum.Units_Sold)" },
-        { "type": "formula", "as": "unit_cost", "expr": "toNumber(datum.Unit_Cost)" },
-        { "type": "formula", "as": "targetMargin_raw", "expr": "isValid(datum['SKU Target Margin']) ? toNumber(datum['SKU Target Margin']) : null" },
-        { "type": "formula", "as": "targetMarginReference_raw", "expr": "isValid(datum['Context Target Margin']) ? toNumber(datum['Context Target Margin']) : datum.targetMargin_raw" },
+        { "type": "formula", "as": "revenue", "expr": "toNumber(datum.Ingresos)" },
+        { "type": "formula", "as": "units", "expr": "toNumber(datum.Unidades_Vendidas)" },
+        { "type": "formula", "as": "unit_cost", "expr": "toNumber(datum.Costo_Unitario)" },
+        { "type": "formula", "as": "targetMargin_raw", "expr": "isValid(datum['Margen Objetivo SKU']) ? toNumber(datum['Margen Objetivo SKU']) : null" },
+        { "type": "formula", "as": "targetMarginReference_raw", "expr": "isValid(datum['Margen Objetivo Contexto']) ? toNumber(datum['Margen Objetivo Contexto']) : datum.targetMargin_raw" },
         { "type": "filter", "expr": "isValid(datum.date_value) && isValid(datum.sku_key) && isValid(datum.revenue) && isValid(datum.units) && isValid(datum.unit_cost) && isValid(datum.targetMargin_raw) && datum.revenue > 0 && datum.units > 0 && datum.unit_cost >= 0" },
         { "type": "formula", "as": "target_margin_pct", "expr": "abs(datum.targetMargin_raw) > 1 ? datum.targetMargin_raw / 100 : datum.targetMargin_raw" },
         { "type": "formula", "as": "target_margin_reference_pct", "expr": "abs(datum.targetMarginReference_raw) > 1 ? datum.targetMarginReference_raw / 100 : datum.targetMarginReference_raw" },
@@ -133,9 +143,9 @@
         { "type": "window", "groupby": ["sku_key"], "sort": { "field": ["date_value"], "order": ["descending"] }, "ops": ["row_number"], "as": ["rk"] },
         { "type": "filter", "expr": "datum.rk == 1 && isValid(datum.margin_pct)" },
         { "type": "formula", "as": "x_scatter", "expr": "datum.history_n > 1 ? datum.growth_vs_base_pct : datum.fallback_x_pct" },
-        { "type": "formula", "as": "x_mode", "expr": "datum.history_n > 1 ? 'Growth vs Base' : 'Revenue vs Portfolio Mean (fallback)'" },
+        { "type": "formula", "as": "x_mode", "expr": "datum.history_n > 1 ? 'Crecimiento vs base' : 'Ingresos vs promedio del portafolio (alternativo)'" },
         { "type": "formula", "as": "quadrant", "expr": "datum.x_scatter < 0 && datum.margin_gap_pct >= 0 ? 'topLeft' : datum.x_scatter >= 0 && datum.margin_gap_pct >= 0 ? 'topRight' : datum.x_scatter < 0 && datum.margin_gap_pct < 0 ? 'bottomLeft' : 'bottomRight'" },
-        { "type": "formula", "as": "quadrant_label", "expr": "datum.quadrant === 'topLeft' ? 'Defend Volume' : datum.quadrant === 'topRight' ? 'Grow and Profitable' : datum.quadrant === 'bottomLeft' ? 'Value Destruction' : 'Growth with Margin Risk'" },
+        { "type": "formula", "as": "quadrant_label", "expr": "datum.quadrant === 'topLeft' ? 'Defender volumen' : datum.quadrant === 'topRight' ? 'Crecer con rentabilidad' : datum.quadrant === 'bottomLeft' ? 'Destrucción de valor' : 'Crecimiento con riesgo de margen'" },
         { "type": "formula", "as": "is_profitable", "expr": "datum.margin_gap_pct >= 0 ? 1 : 0" },
         { "type": "formula", "as": "is_critical", "expr": "datum.margin_gap_pct < 0 ? 1 : 0" },
         { "type": "formula", "as": "exposed_revenue", "expr": "datum.margin_gap_pct < 0 ? datum.revenue : 0" }
@@ -157,13 +167,13 @@
         { "type": "formula", "as": "weighted_gross_margin", "expr": "datum.visible_revenue > 0 ? datum.gross_margin_total / datum.visible_revenue : 0" }
       ]
     },
-    { "name": "active_categories", "source": "dataset", "transform": [ { "type": "filter", "expr": "isValid(datum.category)" }, { "type": "aggregate", "groupby": ["category"] }, { "type": "formula", "as": "category_order", "expr": "datum.category === 'Beer' ? 0 : datum.category === 'Beverages' ? 1 : datum.category === 'Personal Care' ? 2 : datum.category === 'Snacks' ? 3 : datum.category === 'Spirits' ? 4 : datum.category === 'Wine' ? 5 : 99" }, { "type": "collect", "sort": { "field": ["category_order", "category"], "order": ["ascending", "ascending"] } } ] },
+    { "name": "active_categories", "source": "dataset", "transform": [ { "type": "filter", "expr": "isValid(datum.category)" }, { "type": "aggregate", "groupby": ["category"] }, { "type": "formula", "as": "category_order", "expr": "datum.category === 'Cerveza' ? 0 : datum.category === 'Bebidas' ? 1 : datum.category === 'Cuidado personal' ? 2 : datum.category === 'Aperitivos' ? 3 : datum.category === 'Destilados' ? 4 : datum.category === 'Vino' ? 5 : 99" }, { "type": "collect", "sort": { "field": ["category_order", "category"], "order": ["ascending", "ascending"] } } ] },
     { "name": "active_products", "source": "dataset", "transform": [ { "type": "aggregate", "groupby": ["product", "category_label"] } ] },
     { "name": "quadrant_labels", "values": [
-      { "quadrant": "topLeft", "label": "Defend Volume", "subLabel": "Margin holds while revenue declines", "shape": "diamond", "detailShape": "circle", "fill": "#c2d9e9", "stroke": "#3f6f95", "detailFill": "#3f6f95", "legendText": "Margin holds, revenue falls", "legendIndex": 0 },
-      { "quadrant": "topRight", "label": "Grow and Profitable", "subLabel": "Growth above target margin", "shape": "circle", "detailShape": "cross", "fill": "#b9dec9", "stroke": "#1f6b5c", "detailFill": "#1f6b5c", "legendText": "Growth above target", "legendIndex": 1 },
-      { "quadrant": "bottomLeft", "label": "Value Destruction", "subLabel": "Declining revenue below target", "shape": "square", "detailShape": "cross", "fill": "#e36b76", "stroke": "#a93f4b", "detailFill": "#f7f5f2", "legendText": "Decline below target", "legendIndex": 2 },
-      { "quadrant": "bottomRight", "label": "Growth with Margin Risk", "subLabel": "Growth below target margin", "shape": "triangle-up", "detailShape": "triangle-down", "fill": "#f9d5b1", "stroke": "#b87235", "detailFill": "#b87235", "legendText": "Growth below target", "legendIndex": 3 }
+      { "quadrant": "topLeft", "label": "Defender volumen", "subLabel": "El margen se mantiene mientras caen los ingresos", "shape": "diamond", "detailShape": "circle", "fill": "#c2d9e9", "stroke": "#3f6f95", "detailFill": "#3f6f95", "legendText": "Margen estable, ingresos caen", "legendIndex": 0 },
+      { "quadrant": "topRight", "label": "Crecer con rentabilidad", "subLabel": "Crecimiento por encima del margen objetivo", "shape": "circle", "detailShape": "cross", "fill": "#b9dec9", "stroke": "#1f6b5c", "detailFill": "#1f6b5c", "legendText": "Crecimiento sobre el objetivo", "legendIndex": 1 },
+      { "quadrant": "bottomLeft", "label": "Destrucción de valor", "subLabel": "Ingresos decrecientes por debajo del objetivo", "shape": "square", "detailShape": "cross", "fill": "#e36b76", "stroke": "#a93f4b", "detailFill": "#f7f5f2", "legendText": "Caída bajo el objetivo", "legendIndex": 2 },
+      { "quadrant": "bottomRight", "label": "Crecimiento con riesgo de margen", "subLabel": "Crecimiento por debajo del margen objetivo", "shape": "triangle-up", "detailShape": "triangle-down", "fill": "#f9d5b1", "stroke": "#b87235", "detailFill": "#b87235", "legendText": "Crecimiento bajo el objetivo", "legendIndex": 3 }
     ] }
   ],
   "scales": [
@@ -177,19 +187,18 @@
     { "name": "quadrantDetailFill", "type": "ordinal", "domain": ["topLeft", "topRight", "bottomLeft", "bottomRight"], "range": ["#3f6f95", "#1f6b5c", "#f7f5f2", "#b87235"] }
   ],
   "axes": [
-    { "orient": "bottom", "scale": "x", "title": "Revenue Growth vs First Visible Period", "titlePadding": 14, "format": ".0%", "grid": true, "gridColor": "#e9edf5", "gridOpacity": 1, "labelFont": "Bahnschrift", "labelFontSize": 11, "labelColor": "#667085", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#475467", "encode": { "grid": { "update": { "y": { "value": 0 }, "y2": { "signal": "plotTop - plotBottom" } } } } },
-    { "orient": "left", "scale": "y", "title": "Margin Gap vs SKU-Q Target", "titlePadding": 16, "format": ".0%", "grid": true, "gridColor": "#e9edf5", "gridOpacity": 1, "labelFont": "Bahnschrift", "labelFontSize": 11, "labelColor": "#667085", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#475467", "encode": { "grid": { "update": { "x": { "value": 0 }, "x2": { "signal": "width" } } } } }
+    { "orient": "bottom", "scale": "x", "title": "Crecimiento de ingresos vs primer período visible", "titlePadding": 14, "format": ".0%", "grid": true, "gridColor": "#e9edf5", "gridOpacity": 1, "labelFont": "Bahnschrift", "labelFontSize": 11, "labelColor": "#667085", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#475467", "encode": { "grid": { "update": { "y": { "value": 0 }, "y2": { "signal": "plotTop - plotBottom" } } } } },
+    { "orient": "left", "scale": "y", "title": "Brecha de margen vs objetivo SKU-Q", "titlePadding": 16, "format": ".0%", "grid": true, "gridColor": "#e9edf5", "gridOpacity": 1, "labelFont": "Bahnschrift", "labelFontSize": 11, "labelColor": "#667085", "titleFont": "Bahnschrift SemiBold", "titleFontSize": 12, "titleColor": "#475467", "encode": { "grid": { "update": { "x": { "value": 0 }, "x2": { "signal": "width" } } } } }
   ],
   "legends": [],
   "marks": [
     { "type": "text", "encode": { "update": { "x": { "signal": "summaryCenterX" }, "y": { "signal": "summaryContextY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 11 }, "fill": { "value": "#7a8699" }, "text": { "signal": "contextLabel" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol1" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Visible SKUs: ' + format(data('kpi_stats')[0].sku_count, ',.0f')" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol2" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Profitable SKUs: ' + format(data('kpi_stats')[0].profitable_sku_pct, '.0%')" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol3" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Critical SKUs: ' + format(data('kpi_stats')[0].critical_sku_pct, '.0%')" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol4" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Exposed revenue: ' + format(data('kpi_stats')[0].exposed_revenue_pct, '.0%')" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol5 - 4" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "right" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "value": "Weighted gross margin:" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol5 + 4" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "left" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "format(data('kpi_stats')[0].weighted_gross_margin, '.1%')" } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "width + 74" }, "y": { "signal": "quadrantLegendTop - 28" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 12 }, "fill": { "value": "#344054" }, "text": { "value": "Quadrant" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol1" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'SKU visibles: ' + format(data('kpi_stats')[0].sku_count, ',.0f')" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol2" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'SKU rentables: ' + format(data('kpi_stats')[0].profitable_sku_pct, '.0%')" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol3" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'SKU críticos: ' + format(data('kpi_stats')[0].critical_sku_pct, '.0%')" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol4" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Ingresos expuestos: ' + format(data('kpi_stats')[0].exposed_revenue_pct, '.0%')" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "kpiCol5" }, "y": { "signal": "summaryKpiY" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 10.5 }, "fill": { "value": "#52607a" }, "text": { "signal": "'Margen bruto pond.: ' + format(data('kpi_stats')[0].weighted_gross_margin, '.1%')" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "width + 74" }, "y": { "signal": "quadrantLegendTop - 28" }, "align": { "value": "center" }, "baseline": { "value": "top" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 12 }, "fill": { "value": "#344054" }, "text": { "value": "Cuadrante" } } } },
     { "type": "symbol", "from": { "data": "quadrant_labels" }, "encode": { "update": { "x": { "signal": "width + 16" }, "y": { "signal": "quadrantLegendTop + datum.legendIndex * 30" }, "shape": { "field": "shape" }, "size": { "value": 100 }, "fill": { "field": "fill" }, "stroke": { "field": "stroke" }, "strokeWidth": { "value": 1.3 }, "opacity": { "value": 0.9 } } } },
     { "type": "symbol", "from": { "data": "quadrant_labels" }, "encode": { "update": { "x": { "signal": "width + 16" }, "y": { "signal": "quadrantLegendTop + datum.legendIndex * 30" }, "shape": { "field": "detailShape" }, "size": { "value": 28 }, "fill": { "field": "detailFill" }, "stroke": { "field": "stroke" }, "strokeWidth": { "value": 0.8 }, "opacity": { "value": 1 } } } },
     { "type": "text", "from": { "data": "quadrant_labels" }, "encode": { "update": { "x": { "signal": "width + 34" }, "y": { "signal": "quadrantLegendTop + datum.legendIndex * 30 - 4" }, "align": { "value": "left" }, "baseline": { "value": "middle" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 10 }, "fill": { "value": "#475467" }, "text": { "field": "label" } } } },
@@ -204,14 +213,14 @@
     { "type": "rect", "interactive": false, "encode": { "update": { "x": { "scale": "x", "value": 0 }, "x2": { "signal": "width" }, "y": { "signal": "targetMarginY" }, "y2": { "signal": "plotBottom" }, "fill": { "value": "transparent" }, "stroke": { "value": "#b87235" }, "strokeWidth": { "value": 1.25 }, "strokeOpacity": { "signal": "hoveredPointQuadrant === 'bottomRight' ? 0.58 : 0" } } } },
     { "type": "rule", "encode": { "update": { "x": { "scale": "x", "value": 0 }, "y": { "signal": "plotTop" }, "y2": { "signal": "plotBottom" }, "stroke": { "value": "#98a2b3" }, "strokeWidth": { "value": 1.25 }, "strokeDash": { "value": [4, 4] } } } },
     { "type": "rule", "encode": { "update": { "x": { "value": 0 }, "x2": { "signal": "width" }, "y": { "signal": "targetMarginY" }, "stroke": { "value": "#98a2b3" }, "strokeWidth": { "value": 1.25 }, "strokeDash": { "value": [4, 4] } } } },
-    { "type": "text", "encode": { "update": { "x": { "signal": "scale('x', 0) + 8" }, "y": { "signal": "targetMarginLabelY" }, "text": { "value": "On Target" }, "fontSize": { "value": 11 }, "fontWeight": { "value": "bold" }, "fill": { "value": "#667085" } } } },
-    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": -10 }, "y": { "signal": "plotTop + 6" }, "text": { "value": "Above target" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 9.5 }, "fill": { "value": "#98a2b3" }, "align": { "value": "right" }, "baseline": { "value": "top" } } } },
-    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": -10 }, "y": { "signal": "plotBottom - 6" }, "text": { "value": "Below target" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 9.5 }, "fill": { "value": "#98a2b3" }, "align": { "value": "right" }, "baseline": { "value": "bottom" } } } },
-    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": 0 }, "y": { "signal": "plotBottom + 28" }, "text": { "value": "Revenue pressure" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 10 }, "fill": { "value": "#7a8699" }, "fillOpacity": { "value": 0.66 }, "align": { "value": "left" }, "baseline": { "value": "top" } } } },
-    { "type": "text", "interactive": false, "encode": { "update": { "x": { "signal": "width" }, "y": { "signal": "plotBottom + 28" }, "text": { "value": "Growth momentum" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 10 }, "fill": { "value": "#7a8699" }, "fillOpacity": { "value": 0.66 }, "align": { "value": "right" }, "baseline": { "value": "top" } } } },
+    { "type": "text", "encode": { "update": { "x": { "signal": "scale('x', 0) + 8" }, "y": { "signal": "targetMarginLabelY" }, "text": { "value": "En objetivo" }, "fontSize": { "value": 11 }, "fontWeight": { "value": "bold" }, "fill": { "value": "#667085" } } } },
+    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": -10 }, "y": { "signal": "plotTop + 6" }, "text": { "value": "Sobre el objetivo" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 9.5 }, "fill": { "value": "#98a2b3" }, "align": { "value": "right" }, "baseline": { "value": "top" } } } },
+    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": -10 }, "y": { "signal": "plotBottom - 6" }, "text": { "value": "Bajo el objetivo" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 9.5 }, "fill": { "value": "#98a2b3" }, "align": { "value": "right" }, "baseline": { "value": "bottom" } } } },
+    { "type": "text", "interactive": false, "encode": { "update": { "x": { "value": 0 }, "y": { "signal": "plotBottom + 28" }, "text": { "value": "Presión de ingresos" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 10 }, "fill": { "value": "#7a8699" }, "fillOpacity": { "value": 0.66 }, "align": { "value": "left" }, "baseline": { "value": "top" } } } },
+    { "type": "text", "interactive": false, "encode": { "update": { "x": { "signal": "width" }, "y": { "signal": "plotBottom + 28" }, "text": { "value": "Impulso de crecimiento" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 10 }, "fill": { "value": "#7a8699" }, "fillOpacity": { "value": 0.66 }, "align": { "value": "right" }, "baseline": { "value": "top" } } } },
     { "type": "text", "from": { "data": "quadrant_labels" }, "encode": { "update": { "x": { "signal": "datum.quadrant === 'topLeft' || datum.quadrant === 'bottomLeft' ? scale('x', 0) * 0.5 : scale('x', 0) + (width - scale('x', 0)) * 0.5" }, "y": { "signal": "datum.quadrant === 'topLeft' || datum.quadrant === 'topRight' ? plotTop + (targetMarginY - plotTop) * 0.5 : targetMarginY + (plotBottom - targetMarginY) * 0.5" }, "text": { "field": "label" }, "font": { "value": "Bahnschrift SemiBold" }, "fontSize": { "value": 11 }, "fill": { "value": "#98a2b3" }, "opacity": { "signal": "datum.quadrant === 'topLeft' || datum.quadrant === 'topRight' ? targetMarginY - plotTop > 32 ? 1 : 0 : plotBottom - targetMarginY > 32 ? 1 : 0" }, "align": { "value": "center" }, "baseline": { "value": "middle" } } } },
     { "type": "text", "from": { "data": "quadrant_labels" }, "encode": { "update": { "x": { "signal": "datum.quadrant === 'topLeft' || datum.quadrant === 'bottomLeft' ? scale('x', 0) * 0.5 : scale('x', 0) + (width - scale('x', 0)) * 0.5" }, "y": { "signal": "(datum.quadrant === 'topLeft' || datum.quadrant === 'topRight' ? plotTop + (targetMarginY - plotTop) * 0.5 : targetMarginY + (plotBottom - targetMarginY) * 0.5) + 16" }, "text": { "field": "subLabel" }, "font": { "value": "Bahnschrift" }, "fontSize": { "value": 9 }, "fill": { "value": "#b0b8c7" }, "opacity": { "signal": "datum.quadrant === 'topLeft' || datum.quadrant === 'topRight' ? targetMarginY - plotTop > 48 ? 1 : 0 : plotBottom - targetMarginY > 48 ? 1 : 0" }, "align": { "value": "center" }, "baseline": { "value": "top" } } } },
-    { "type": "symbol", "name": "scatter-points", "from": { "data": "latest_points" }, "encode": { "enter": { "strokeWidth": { "value": 1.4 } }, "update": { "x": { "scale": "x", "field": "x_scatter" }, "y": { "scale": "y", "field": "margin_gap_pct" }, "shape": { "scale": "quadrantShape", "field": "quadrant" }, "size": { "scale": "pointSize", "field": "revenue" }, "fill": { "scale": "quadrantFill", "field": "quadrant" }, "stroke": { "scale": "quadrantStroke", "field": "quadrant" }, "strokeWidth": { "value": 1.4 }, "opacity": { "value": 0.78 }, "tooltip": { "signal": "datum.has_product && datum.has_category ? {'Period': timeFormat(datum.date_start, '%Y-%m-%d') + ' to ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Product': datum.product, 'Category': datum.category, 'Quadrant': datum.quadrant_label, 'Revenue Growth': format(datum.x_scatter, '.1%'), 'Gross Margin %': format(datum.margin_pct, '.1%'), 'SKU Target Margin %': format(datum.target_margin_pct, '.1%'), 'Margin Gap vs Target': format(datum.margin_gap_pct, '.1%'), 'Reference Target Margin %': format(contextTargetMarginPct, '.1%'), 'Revenue': format(datum.revenue, ',.0f')} : datum.has_product ? {'Period': timeFormat(datum.date_start, '%Y-%m-%d') + ' to ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Product': datum.product, 'Quadrant': datum.quadrant_label, 'Revenue Growth': format(datum.x_scatter, '.1%'), 'Gross Margin %': format(datum.margin_pct, '.1%'), 'SKU Target Margin %': format(datum.target_margin_pct, '.1%'), 'Margin Gap vs Target': format(datum.margin_gap_pct, '.1%'), 'Reference Target Margin %': format(contextTargetMarginPct, '.1%'), 'Revenue': format(datum.revenue, ',.0f')} : datum.has_category ? {'Period': timeFormat(datum.date_start, '%Y-%m-%d') + ' to ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Category': datum.category, 'Quadrant': datum.quadrant_label, 'Revenue Growth': format(datum.x_scatter, '.1%'), 'Gross Margin %': format(datum.margin_pct, '.1%'), 'SKU Target Margin %': format(datum.target_margin_pct, '.1%'), 'Margin Gap vs Target': format(datum.margin_gap_pct, '.1%'), 'Reference Target Margin %': format(contextTargetMarginPct, '.1%'), 'Revenue': format(datum.revenue, ',.0f')} : {'Period': timeFormat(datum.date_start, '%Y-%m-%d') + ' to ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Quadrant': datum.quadrant_label, 'Revenue Growth': format(datum.x_scatter, '.1%'), 'Gross Margin %': format(datum.margin_pct, '.1%'), 'SKU Target Margin %': format(datum.target_margin_pct, '.1%'), 'Margin Gap vs Target': format(datum.margin_gap_pct, '.1%'), 'Reference Target Margin %': format(contextTargetMarginPct, '.1%'), 'Revenue': format(datum.revenue, ',.0f')}" } } } },
+    { "type": "symbol", "name": "scatter-points", "from": { "data": "latest_points" }, "encode": { "enter": { "strokeWidth": { "value": 1.4 } }, "update": { "x": { "scale": "x", "field": "x_scatter" }, "y": { "scale": "y", "field": "margin_gap_pct" }, "shape": { "scale": "quadrantShape", "field": "quadrant" }, "size": { "scale": "pointSize", "field": "revenue" }, "fill": { "scale": "quadrantFill", "field": "quadrant" }, "stroke": { "scale": "quadrantStroke", "field": "quadrant" }, "strokeWidth": { "value": 1.4 }, "opacity": { "value": 0.78 }, "tooltip": { "signal": "datum.has_product && datum.has_category ? {'Período': timeFormat(datum.date_start, '%Y-%m-%d') + ' a ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Producto': datum.product, 'Categoría': datum.category, 'Cuadrante': datum.quadrant_label, 'Crecimiento de ingresos': format(datum.x_scatter, '.1%'), 'Margen bruto %': format(datum.margin_pct, '.1%'), 'Margen objetivo SKU %': format(datum.target_margin_pct, '.1%'), 'Brecha de margen vs objetivo': format(datum.margin_gap_pct, '.1%'), 'Margen objetivo de referencia %': format(contextTargetMarginPct, '.1%'), 'Ingresos': format(datum.revenue, ',.0f')} : datum.has_product ? {'Período': timeFormat(datum.date_start, '%Y-%m-%d') + ' a ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Producto': datum.product, 'Cuadrante': datum.quadrant_label, 'Crecimiento de ingresos': format(datum.x_scatter, '.1%'), 'Margen bruto %': format(datum.margin_pct, '.1%'), 'Margen objetivo SKU %': format(datum.target_margin_pct, '.1%'), 'Brecha de margen vs objetivo': format(datum.margin_gap_pct, '.1%'), 'Margen objetivo de referencia %': format(contextTargetMarginPct, '.1%'), 'Ingresos': format(datum.revenue, ',.0f')} : datum.has_category ? {'Período': timeFormat(datum.date_start, '%Y-%m-%d') + ' a ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Categoría': datum.category, 'Cuadrante': datum.quadrant_label, 'Crecimiento de ingresos': format(datum.x_scatter, '.1%'), 'Margen bruto %': format(datum.margin_pct, '.1%'), 'Margen objetivo SKU %': format(datum.target_margin_pct, '.1%'), 'Brecha de margen vs objetivo': format(datum.margin_gap_pct, '.1%'), 'Margen objetivo de referencia %': format(contextTargetMarginPct, '.1%'), 'Ingresos': format(datum.revenue, ',.0f')} : {'Período': timeFormat(datum.date_start, '%Y-%m-%d') + ' a ' + timeFormat(datum.date_value, '%Y-%m-%d'), 'SKU': datum.sku_key, 'Cuadrante': datum.quadrant_label, 'Crecimiento de ingresos': format(datum.x_scatter, '.1%'), 'Margen bruto %': format(datum.margin_pct, '.1%'), 'Margen objetivo SKU %': format(datum.target_margin_pct, '.1%'), 'Brecha de margen vs objetivo': format(datum.margin_gap_pct, '.1%'), 'Margen objetivo de referencia %': format(contextTargetMarginPct, '.1%'), 'Ingresos': format(datum.revenue, ',.0f')}" } } } },
     { "type": "symbol", "from": { "data": "latest_points" }, "interactive": false, "encode": { "update": { "x": { "scale": "x", "field": "x_scatter" }, "y": { "scale": "y", "field": "margin_gap_pct" }, "shape": { "scale": "quadrantDetailShape", "field": "quadrant" }, "size": { "signal": "datum.quadrant === 'bottomRight' ? 28 : 24" }, "fill": { "scale": "quadrantDetailFill", "field": "quadrant" }, "stroke": { "scale": "quadrantStroke", "field": "quadrant" }, "strokeWidth": { "signal": "datum.quadrant === 'bottomLeft' || datum.quadrant === 'bottomRight' ? 0.8 : 0" }, "opacity": { "value": 0.95 } } } }
   ]
 }
