@@ -53,8 +53,6 @@ Contiene la definición completa del visual, incluyendo:
 - KPI de cabecera.
 - Cuadrantes con colores semánticos y etiquetas dinámicas.
 
-La versión en español utiliza `commercial-profitability-cockpit-es.json`, `commercial-profitability-cockpit-es.csv` y `commercial-profitability-targets-es.csv`.
-
 ### 📊 Archivo Power BI (.pbix)
 
 Incluye un ejemplo funcional con datos de muestra, tabla de objetivos, medidas configuradas y el visual cargado en Deneb.
